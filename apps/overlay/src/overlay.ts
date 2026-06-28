@@ -1,6 +1,7 @@
 // Overlay window entry: render a loaded rotation and advance it from key events that the
 // Rust rdev listener forwards. The window itself is transparent + click-through.
 import { listen } from '@tauri-apps/api/event'
+import { invoke } from '@tauri-apps/api/core'
 import { overlayExportSchema } from '@skill-overlay/schema'
 import { advance, createState, reset, type RotationState } from './rotation'
 import { renderOverlay } from './render'
@@ -38,5 +39,21 @@ void listen('reset-rotation', () => {
 })
 
 void listen<unknown>('load-rotation', (e) => loadExport(e.payload))
+
+function applyOpacity(opacity: number): void {
+  root.style.opacity = String(opacity)
+}
+
+void listen<{ opacity: number }>('config-changed', (e) => applyOpacity(e.payload.opacity))
+
+// Restore persisted opacity + the last-loaded rotation on startup.
+void invoke<{ opacity: number }>('get_config')
+  .then((cfg) => applyOpacity(cfg.opacity))
+  .catch(() => {})
+void invoke<unknown>('get_initial_rotation')
+  .then((value) => {
+    if (value) loadExport(value)
+  })
+  .catch(() => {})
 
 window.addEventListener('resize', render)

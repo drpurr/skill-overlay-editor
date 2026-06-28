@@ -27,6 +27,16 @@
         "focus": false,
         "resizable": false,
         "visible": true
+      },
+      {
+        "label": "settings",
+        "url": "settings.html",
+        "title": "Skill Overlay — Settings",
+        "width": 440,
+        "height": 520,
+        "resizable": true,
+        "center": true,
+        "visible": false
       }
     ],
     "security": {

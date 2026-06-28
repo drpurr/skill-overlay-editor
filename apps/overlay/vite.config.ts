@@ -22,6 +22,14 @@ export default defineConfig({
       ),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        overlay: fileURLToPath(new URL('./index.html', import.meta.url)),
+        settings: fileURLToPath(new URL('./settings.html', import.meta.url)),
+      },
+    },
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
