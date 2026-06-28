@@ -66,16 +66,33 @@ function NodeInspector({ node }: { node: SkillNode }) {
         />
       </Field>
 
-      <Field label={`Icon scale · ${node.scale.toFixed(2)}×`}>
-        <input
-          type="range"
-          min={0.25}
-          max={3}
-          step={0.05}
-          value={node.scale}
-          onChange={(e) => setNodeScale(node.id, Number(e.target.value))}
-          className="w-full"
-        />
+      <Field label="Icon scale">
+        <div className="flex items-center gap-2">
+          <input
+            type="range"
+            min={0.25}
+            max={3}
+            step={0.05}
+            value={node.scale}
+            onChange={(e) => setNodeScale(node.id, Number(e.target.value))}
+            className="min-w-0 flex-1"
+            aria-label="Icon scale slider"
+          />
+          <input
+            type="number"
+            min={0.1}
+            max={5}
+            step={0.05}
+            value={Number(node.scale.toFixed(2))}
+            onChange={(e) => {
+              const v = Number(e.target.value)
+              if (!Number.isNaN(v)) setNodeScale(node.id, v)
+            }}
+            className="w-16 rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
+            aria-label="Icon scale value"
+          />
+          <span className="text-white/40">×</span>
+        </div>
       </Field>
 
       <label className="flex items-center gap-2 text-white/80">

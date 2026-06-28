@@ -14,6 +14,7 @@ export function SkillLibraryPanel() {
   const cls = useEditorStore((s) => s.build.class)
   const setClass = useEditorStore((s) => s.setClass)
   const addSkillNode = useEditorStore((s) => s.addSkillNode)
+  const hasNodes = useEditorStore((s) => s.build.nodes.length > 0)
 
   const [classes, setClasses] = useState<ClassInfo[]>([])
   const [skills, setSkills] = useState<Skill[]>([])
@@ -60,7 +61,9 @@ export function SkillLibraryPanel() {
         <select
           value={cls}
           onChange={(e) => setClass(e.target.value)}
-          className="ml-auto rounded bg-[var(--color-panel-2)] px-2 py-1 text-xs text-white/90 outline-none ring-1 ring-black/40"
+          disabled={hasNodes}
+          title={hasNodes ? 'Remove all skills to switch class' : 'Class for this build'}
+          className="ml-auto rounded bg-[var(--color-panel-2)] px-2 py-1 text-xs text-white/90 outline-none ring-1 ring-black/40 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {classes.map((c) => (
             <option key={c.slug} value={classKey(c.name)}>

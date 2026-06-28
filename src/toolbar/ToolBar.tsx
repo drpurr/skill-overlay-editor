@@ -1,18 +1,22 @@
 import { useReactFlow, useViewport } from '@xyflow/react'
-import { useEditorStore, useTemporal, type Tool } from '../state/editorStore'
-
-const TOOLS: { id: Tool; label: string }[] = [
-  { id: 'select', label: 'Select' },
-  { id: 'connect', label: 'Connect' },
-  { id: 'move', label: 'Move' },
-  { id: 'delete', label: 'Delete' },
-]
+import { useEditorStore, useTemporal } from '../state/editorStore'
+import {
+  FitIcon,
+  GridIcon,
+  RedoIcon,
+  SettingsIcon,
+  SnapIcon,
+  UndoIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from './icons'
 
 export function ToolBar() {
-  const tool = useEditorStore((s) => s.tool)
-  const setTool = useEditorStore((s) => s.setTool)
   const snap = useEditorStore((s) => s.snapToGrid)
   const setSnap = useEditorStore((s) => s.setSnapToGrid)
+  const showGrid = useEditorStore((s) => s.showGrid)
+  const setShowGrid = useEditorStore((s) => s.setShowGrid)
+  const setSettingsOpen = useEditorStore((s) => s.setSettingsOpen)
 
   const undo = useTemporal((s) => s.undo)
   const redo = useTemporal((s) => s.redo)
@@ -23,60 +27,27 @@ export function ToolBar() {
   const zoom = useViewport().zoom
 
   return (
-    <div className="flex items-center gap-2 border-b border-black/50 bg-[var(--color-panel)] px-3 py-1.5 text-sm">
-      <div className="flex items-center gap-1">
-        {TOOLS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTool(t.id)}
-            className={`rounded px-2.5 py-1 ${
-              tool === t.id
-                ? 'bg-[var(--color-accent)]/30 text-white ring-1 ring-[var(--color-accent-2)]'
-                : 'text-white/70 hover:bg-white/5'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+    <div className="flex items-center gap-1.5 border-b border-black/50 bg-[var(--color-panel)] px-3 py-1.5 text-sm">
+      <IconButton title="Undo (Ctrl+Z)" onClick={() => undo()} disabled={!canUndo}>
+        <UndoIcon />
+      </IconButton>
+      <IconButton title="Redo (Ctrl+Shift+Z)" onClick={() => redo()} disabled={!canRedo}>
+        <RedoIcon />
+      </IconButton>
 
       <Divider />
 
-      <button
-        type="button"
-        onClick={() => undo()}
-        disabled={!canUndo}
-        title="Undo (Ctrl+Z)"
-        className="rounded px-2 py-1 text-white/80 enabled:hover:bg-white/5 disabled:text-white/25"
-      >
-        ↶ Undo
-      </button>
-      <button
-        type="button"
-        onClick={() => redo()}
-        disabled={!canRedo}
-        title="Redo (Ctrl+Shift+Z)"
-        className="rounded px-2 py-1 text-white/80 enabled:hover:bg-white/5 disabled:text-white/25"
-      >
-        ↷ Redo
-      </button>
+      <IconButton title="Snap to grid" active={snap} onClick={() => setSnap(!snap)}>
+        <SnapIcon />
+      </IconButton>
+      <IconButton title="Show alignment grid" active={showGrid} onClick={() => setShowGrid(!showGrid)}>
+        <GridIcon />
+      </IconButton>
 
-      <Divider />
-
-      <label className="flex select-none items-center gap-1.5 text-white/70">
-        <input type="checkbox" checked={snap} onChange={(e) => setSnap(e.target.checked)} />
-        Snap to grid
-      </label>
-
-      <div className="ml-auto flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => zoomOut()}
-          className="rounded px-2 py-1 text-white/80 hover:bg-white/5"
-        >
-          −
-        </button>
+      <div className="ml-auto flex items-center gap-1.5">
+        <IconButton title="Zoom out" onClick={() => zoomOut()}>
+          <ZoomOutIcon />
+        </IconButton>
         <input
           type="range"
           min={0.2}
@@ -85,26 +56,55 @@ export function ToolBar() {
           value={zoom}
           onChange={(e) => zoomTo(Number(e.target.value))}
           className="w-28"
+          aria-label="Zoom"
         />
-        <button
-          type="button"
-          onClick={() => zoomIn()}
-          className="rounded px-2 py-1 text-white/80 hover:bg-white/5"
-        >
-          +
-        </button>
-        <span className="w-12 text-right tabular-nums text-white/60">
-          {Math.round(zoom * 100)}%
-        </span>
-        <button
-          type="button"
-          onClick={() => fitView({ padding: 0.15 })}
-          className="rounded px-2 py-1 text-white/80 hover:bg-white/5"
-        >
-          Fit
-        </button>
+        <IconButton title="Zoom in" onClick={() => zoomIn()}>
+          <ZoomInIcon />
+        </IconButton>
+        <span className="w-11 text-right tabular-nums text-white/60">{Math.round(zoom * 100)}%</span>
+        <IconButton title="Fit to view" onClick={() => fitView({ padding: 0.15 })}>
+          <FitIcon />
+        </IconButton>
+
+        <Divider />
+
+        <IconButton title="Settings" onClick={() => setSettingsOpen(true)}>
+          <SettingsIcon />
+        </IconButton>
       </div>
     </div>
+  )
+}
+
+function IconButton({
+  children,
+  onClick,
+  title,
+  active,
+  disabled,
+}: {
+  children: React.ReactNode
+  onClick: () => void
+  title: string
+  active?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      aria-pressed={active}
+      onClick={onClick}
+      disabled={disabled}
+      className={`grid h-8 w-8 place-items-center rounded ${
+        active
+          ? 'bg-[var(--color-accent)]/30 text-white ring-1 ring-[var(--color-accent-2)]'
+          : 'text-white/75 enabled:hover:bg-white/5 disabled:text-white/20'
+      }`}
+    >
+      {children}
+    </button>
   )
 }
 

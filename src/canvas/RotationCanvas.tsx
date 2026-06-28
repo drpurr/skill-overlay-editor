@@ -22,14 +22,16 @@ import { RotationEdge } from './RotationEdge'
 import { frameSize, iconSizePx } from './frame'
 
 const FRAME_ID = '__frame__'
+/** Shared grid unit: snap step and the visible square-grid spacing align to this. */
+export const GRID = 24
 
 const nodeTypes = { skill: SkillNode, frame: FrameNode }
 const edgeTypes = { rotation: RotationEdge }
 
 export default function RotationCanvas() {
   const build = useEditorStore((s) => s.build)
-  const tool = useEditorStore((s) => s.tool)
   const snap = useEditorStore((s) => s.snapToGrid)
+  const showGrid = useEditorStore((s) => s.showGrid)
   const selectedNodeId = useEditorStore((s) => s.selectedNodeId)
   const selectedEdgeId = useEditorStore((s) => s.selectedEdgeId)
   const moveNode = useEditorStore((s) => s.moveNode)
@@ -46,9 +48,8 @@ export default function RotationCanvas() {
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState<Node>([])
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState<Edge>([])
 
-  // Re-seed React Flow from the store document (single source of truth) whenever it or
-  // the selection changes. Positions are committed back on drag stop, so a drag (which
-  // doesn't touch `build`) never triggers a mid-drag re-seed.
+  // Re-seed React Flow from the store document whenever it (or selection) changes.
+  // Node positions are committed back on drag stop, so a drag never re-seeds mid-drag.
   useEffect(() => {
     const frameNode: Node = {
       id: FRAME_ID,
@@ -74,21 +75,32 @@ export default function RotationCanvas() {
       selected: n.id === selectedNodeId,
       zIndex: 1,
     }))
-    setRfNodes([frameNode, ...skillNodes])
+    // Merge over the previous nodes so RF-measured dimensions / handle bounds survive the
+    // re-seed (the DOM element doesn't resize, so RF won't re-measure on its own).
+    setRfNodes((prev) => {
+      const prevById = new Map(prev.map((n) => [n.id, n]))
+      const carry = (next: Node): Node => {
+        const old = prevById.get(next.id)
+        return old ? { ...old, ...next } : next
+      }
+      return [carry(frameNode), ...skillNodes.map(carry)]
+    })
 
     setRfEdges(
       build.edges.map((e) => ({
         id: e.id,
         source: e.from,
         target: e.to,
+        sourceHandle: 's',
+        targetHandle: 't',
         type: 'rotation',
         selected: e.id === selectedEdgeId,
         data: { condition: e.condition, priority: e.priority },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          width: 18,
-          height: 18,
-          color: e.id === selectedEdgeId ? '#e0a526' : '#8b94a6',
+          width: 26,
+          height: 26,
+          color: e.id === selectedEdgeId ? '#e0a526' : '#ffffff',
         },
       })),
     )
@@ -111,25 +123,14 @@ export default function RotationCanvas() {
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
-      if (node.id === FRAME_ID) return
-      if (tool === 'delete') {
-        removeNode(node.id)
-        return
-      }
-      selectNode(node.id)
+      if (node.id !== FRAME_ID) selectNode(node.id)
     },
-    [tool, removeNode, selectNode],
+    [selectNode],
   )
 
   const onEdgeClick = useCallback(
-    (_: React.MouseEvent, edge: Edge) => {
-      if (tool === 'delete') {
-        removeEdge(edge.id)
-        return
-      }
-      selectEdge(edge.id)
-    },
-    [tool, removeEdge, selectEdge],
+    (_: React.MouseEvent, edge: Edge) => selectEdge(edge.id),
+    [selectEdge],
   )
 
   const onPaneClick = useCallback(() => selectNode(null), [selectNode])
@@ -154,6 +155,8 @@ export default function RotationCanvas() {
       const raw = e.dataTransfer.getData(SKILL_DND_MIME)
       if (!raw) return
       const payload = JSON.parse(raw) as SkillDragPayload
+      // Guard: a build is single-class; never accept a skill from another class.
+      if (payload.classKey !== build.class) return
       const flow = screenToFlowPosition({ x: e.clientX, y: e.clientY })
       const size = iconSizePx(build.canvas.baseIconPct, frame.h, 1)
       const x = (flow.x - size / 2) / frame.w
@@ -161,15 +164,11 @@ export default function RotationCanvas() {
       const id = addSkillNode(payload.skill, payload.classKey, x, y)
       selectNode(id)
     },
-    [screenToFlowPosition, build.canvas.baseIconPct, frame, addSkillNode, selectNode],
+    [screenToFlowPosition, build.canvas.baseIconPct, build.class, frame, addSkillNode, selectNode],
   )
 
   return (
-    <div
-      className={`absolute inset-0 ${tool === 'connect' ? 'connect-mode' : ''}`}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-    >
+    <div className="absolute inset-0" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
         nodes={rfNodes}
         edges={rfEdges}
@@ -184,10 +183,9 @@ export default function RotationCanvas() {
         onPaneClick={onPaneClick}
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
-        nodesDraggable={tool === 'select'}
         connectionMode={ConnectionMode.Loose}
         snapToGrid={snap}
-        snapGrid={[16, 16]}
+        snapGrid={[GRID, GRID]}
         minZoom={0.2}
         maxZoom={4}
         fitView
@@ -195,7 +193,11 @@ export default function RotationCanvas() {
         deleteKeyCode={['Delete', 'Backspace']}
         multiSelectionKeyCode={['Shift']}
       >
-        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#1e2530" />
+        {showGrid ? (
+          <Background variant={BackgroundVariant.Lines} gap={GRID} size={1} color="#222a37" />
+        ) : (
+          <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#1e2530" />
+        )}
         <Controls showInteractive={false} />
       </ReactFlow>
     </div>

@@ -47,8 +47,6 @@ export function TopBar() {
     }
   }
 
-  const onSave = () => downloadJson(`${slugify(build.name)}.rotation.json`, build)
-
   const onExport = () => {
     const issues = validateBuild(build)
     const errors = exportErrors(issues)
@@ -99,7 +97,6 @@ export function TopBar() {
       <div className="ml-auto flex items-center gap-1">
         <BarButton onClick={onNew}>New</BarButton>
         <BarButton onClick={onOpen}>Open</BarButton>
-        <BarButton onClick={onSave}>Save</BarButton>
         <BarButton onClick={onExport} accent>
           Export
         </BarButton>

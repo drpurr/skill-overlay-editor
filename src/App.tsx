@@ -4,6 +4,7 @@ import { TopBar } from './toolbar/TopBar'
 import { ToolBar } from './toolbar/ToolBar'
 import { Inspector } from './inspector/Inspector'
 import { SkillLibraryPanel } from './library/SkillLibraryPanel'
+import { SettingsModal } from './settings/SettingsModal'
 import { useAutosave, useInitialBuild } from './state/usePersistence'
 
 export default function App() {
@@ -29,6 +30,8 @@ export default function App() {
           <SkillLibraryPanel />
         </div>
       </div>
+
+      <SettingsModal />
     </ReactFlowProvider>
   )
 }

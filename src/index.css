@@ -24,17 +24,19 @@ body {
   overflow: hidden;
 }
 
-/* Connection handles are inert unless the Connect tool is active, so node dragging in
-   Select/Move mode never accidentally starts an edge. */
+/* Connection dots: hidden until the skill is hovered or selected, then drag one onto
+   another skill's dot to connect. Dragging the icon body moves it; clicking selects. */
 .react-flow__handle.skill-handle {
+  width: 11px;
+  height: 11px;
+  background: var(--color-accent-2);
+  border: 2px solid #0b0d12;
   opacity: 0;
-  pointer-events: none;
+  transition: opacity 0.12s;
 }
-.connect-mode .react-flow__handle.skill-handle {
-  pointer-events: all;
-}
-.connect-mode .react-flow__node-skill {
-  cursor: crosshair;
+.react-flow__node-skill:hover .react-flow__handle.skill-handle,
+.react-flow__node-skill.selected .react-flow__handle.skill-handle {
+  opacity: 1;
 }
 
 /* React Flow controls themed dark to match the editor. */

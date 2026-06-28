@@ -12,8 +12,6 @@ import {
   type SkillNode,
 } from '../schema/rotation'
 
-export type Tool = 'select' | 'connect' | 'delete' | 'move'
-
 /** Slice tracked by undo/redo history. */
 export interface EditorDoc {
   build: RotationBuild
@@ -23,14 +21,16 @@ export interface EditorState extends EditorDoc {
   // --- UI (not undoable) ---
   selectedNodeId: string | null
   selectedEdgeId: string | null
-  tool: Tool
   snapToGrid: boolean
+  showGrid: boolean
+  settingsOpen: boolean
 
-  // --- selection / tool ---
+  // --- selection / view ---
   selectNode: (id: string | null) => void
   selectEdge: (id: string | null) => void
-  setTool: (tool: Tool) => void
   setSnapToGrid: (on: boolean) => void
+  setShowGrid: (on: boolean) => void
+  setSettingsOpen: (open: boolean) => void
 
   // --- document lifecycle ---
   newBuild: (name: string, classKey: string) => void
@@ -96,13 +96,15 @@ export const useEditorStore = create<EditorState>()(
         build: createEmptyBuild('Untitled Build', 'berserker'),
         selectedNodeId: null,
         selectedEdgeId: null,
-        tool: 'select',
         snapToGrid: true,
+        showGrid: false,
+        settingsOpen: false,
 
         selectNode: (id) => set({ selectedNodeId: id, selectedEdgeId: null }),
         selectEdge: (id) => set({ selectedEdgeId: id, selectedNodeId: null }),
-        setTool: (tool) => set({ tool }),
         setSnapToGrid: (on) => set({ snapToGrid: on }),
+        setShowGrid: (on) => set({ showGrid: on }),
+        setSettingsOpen: (open) => set({ settingsOpen: open }),
 
         newBuild: (name, classKey) =>
           set({
