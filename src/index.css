@@ -1,0 +1,49 @@
+@import 'tailwindcss';
+
+/* Dark, game-styled base to match the editor mockup. */
+@theme {
+  --color-canvas: #0b0d12;
+  --color-panel: #12151c;
+  --color-panel-2: #1a1f29;
+  --color-edge: #2a3140;
+  --color-accent: #c0392b;
+  --color-accent-2: #e0a526;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-canvas);
+  color: #e7e9ee;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* Connection handles are inert unless the Connect tool is active, so node dragging in
+   Select/Move mode never accidentally starts an edge. */
+.react-flow__handle.skill-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+.connect-mode .react-flow__handle.skill-handle {
+  pointer-events: all;
+}
+.connect-mode .react-flow__node-skill {
+  cursor: crosshair;
+}
+
+/* React Flow controls themed dark to match the editor. */
+.react-flow__controls-button {
+  background: var(--color-panel-2);
+  border-bottom: 1px solid #000;
+  color: #cbd2dd;
+  fill: #cbd2dd;
+}
+.react-flow__controls-button:hover {
+  background: #232a36;
+}

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlay Export Preview</title>
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --panel: #12151c;
+        --line: #8b94a6;
+        --accent: #e0a526;
+        --next: #34d399;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: #e7e9ee;
+        font: 14px ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        background: var(--panel);
+        border-bottom: 1px solid #000;
+      }
+      h1 { font-size: 14px; margin: 0; color: var(--accent); font-weight: 600; }
+      .hint { color: #8b94a6; font-size: 12px; }
+      label.btn {
+        cursor: pointer;
+        background: #1a1f29;
+        border: 1px solid #000;
+        border-radius: 6px;
+        padding: 5px 10px;
+        color: #cbd2dd;
+      }
+      label.btn input { display: none; }
+      main { padding: 18px; }
+      #wrap { position: relative; margin: 0 auto; max-width: 1280px; }
+      #stage {
+        position: relative;
+        width: 100%;
+        background: #05070a center/cover no-repeat;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      #edges { position: absolute; inset: 0; pointer-events: none; }
+      .node {
+        position: absolute;
+        background-size: cover;
+        background-position: center;
+        border-radius: 6px;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
+        cursor: pointer;
+        transition: box-shadow 0.1s, opacity 0.1s;
+      }
+      .node .key {
+        position: absolute;
+        right: -6px;
+        bottom: -6px;
+        background: rgba(0, 0, 0, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        padding: 0 3px;
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .node .start {
+        position: absolute;
+        left: -6px;
+        top: -6px;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--next);
+        color: #000;
+        font-size: 8px;
+        text-align: center;
+        line-height: 13px;
+        font-weight: 700;
+      }
+      .node.dim { opacity: 0.3; }
+      .node.selected { box-shadow: 0 0 0 3px var(--accent); }
+      .node.next { box-shadow: 0 0 0 3px var(--next); }
+      #info { margin: 12px auto 0; max-width: 1280px; color: #aab2c0; font-size: 13px; min-height: 20px; }
+      .pill {
+        display: inline-block;
+        background: #1a1f29;
+        border-radius: 10px;
+        padding: 2px 8px;
+        margin: 2px 4px 0 0;
+        font-size: 12px;
+      }
+      .pill .p { color: var(--accent); font-weight: 700; margin-right: 4px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Overlay Export Preview</h1>
+      <span class="hint">Loads a <code>.overlay.json</code> export exactly as the overlay will. Click a skill to see its "possible next".</span>
+      <label class="btn">Load export JSON<input id="file-json" type="file" accept="application/json,.json" /></label>
+      <label class="btn">Load screenshot<input id="file-img" type="file" accept="image/*" /></label>
+    </header>
+    <main>
+      <div id="wrap">
+        <div id="stage"><svg id="edges"></svg></div>
+      </div>
+      <div id="info">No export loaded.</div>
+    </main>
+
+    <script>
+      const SVGNS = 'http://www.w3.org/2000/svg'
+      const stage = document.getElementById('stage')
+      const svg = document.getElementById('edges')
+      const info = document.getElementById('info')
+      let data = null
+      let titles = {}
+      let selected = null
+
+      function aspectRatio(a) {
+        const [w, h] = String(a || '16:9').split(':').map(Number)
+        return w && h ? w / h : 16 / 9
+      }
+      const titleOf = (n) => titles[n.skillId] || '#' + n.skillId
+
+      document.getElementById('file-json').addEventListener('change', async (e) => {
+        const f = e.target.files[0]
+        if (!f) return
+        try {
+          data = JSON.parse(await f.text())
+        } catch (err) {
+          info.textContent = 'Invalid JSON: ' + err.message
+          return
+        }
+        selected = null
+        await loadTitles()
+        render()
+      })
+
+      document.getElementById('file-img').addEventListener('change', (e) => {
+        const f = e.target.files[0]
+        if (!f) return
+        const url = URL.createObjectURL(f)
+        stage.style.backgroundImage = `url(${url})`
+      })
+
+      async function loadTitles() {
+        titles = {}
+        try {
+          const r = await fetch(`/media/skills/${data.class}/skills.json`)
+          if (r.ok) for (const s of await r.json()) titles[s.id] = s.title
+        } catch {}
+      }
+
+      function render() {
+        // size the stage to the export's aspect ratio
+        const w = stage.clientWidth
+        const h = w / aspectRatio(data.canvas?.aspect)
+        stage.style.height = h + 'px'
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
+        svg.setAttribute('width', w)
+        svg.setAttribute('height', h)
+
+        // clear previous nodes (keep the svg)
+        ;[...stage.querySelectorAll('.node')].forEach((n) => n.remove())
+        svg.innerHTML = arrowDef()
+
+        const base = (data.canvas?.baseIconPct ?? 0.06) * h
+        const center = (n) => {
+          const size = base * (n.scale ?? 1)
+          return { x: n.x * w + size / 2, y: n.y * h + size / 2, size }
+        }
+        const byId = Object.fromEntries(data.nodes.map((n) => [n.id, n]))
+        const outFromSelected = selected
+          ? data.edges.filter((e) => e.from === selected)
+          : []
+        const nextIds = new Set(outFromSelected.map((e) => e.to))
+
+        // edges
+        for (const e of data.edges) {
+          const a = byId[e.from], b = byId[e.to]
+          if (!a || !b) continue
+          const ca = center(a), cb = center(b)
+          const active = selected && e.from === selected
+          const line = document.createElementNS(SVGNS, 'line')
+          line.setAttribute('x1', ca.x)
+          line.setAttribute('y1', ca.y)
+          line.setAttribute('x2', cb.x)
+          line.setAttribute('y2', cb.y)
+          line.setAttribute('stroke', active ? 'var(--next)' : 'var(--line)')
+          line.setAttribute('stroke-width', active ? 3 : 2)
+          line.setAttribute('opacity', selected && !active ? 0.25 : 1)
+          line.setAttribute('marker-end', active ? 'url(#arrow-next)' : 'url(#arrow)')
+          svg.appendChild(line)
+        }
+
+        // nodes
+        for (const n of data.nodes) {
+          const c = center(n)
+          const el = document.createElement('div')
+          el.className = 'node'
+          if (selected) {
+            if (n.id === selected) el.classList.add('selected')
+            else if (nextIds.has(n.id)) el.classList.add('next')
+            else el.classList.add('dim')
+          }
+          el.style.left = n.x * 100 + '%'
+          el.style.top = n.y * 100 + '%'
+          el.style.width = c.size + 'px'
+          el.style.height = c.size + 'px'
+          el.style.backgroundImage = `url(/media/skills/${n.class}/icons/${n.icon})`
+          el.title = titleOf(n)
+          if (n.keybind) {
+            const k = document.createElement('span')
+            k.className = 'key'
+            k.textContent = n.keybind
+            el.appendChild(k)
+          }
+          if (n.isStart) {
+            const s = document.createElement('span')
+            s.className = 'start'
+            s.textContent = '▶'
+            el.appendChild(s)
+          }
+          el.addEventListener('click', () => {
+            selected = selected === n.id ? null : n.id
+            render()
+          })
+          stage.appendChild(el)
+        }
+
+        // info line
+        if (!selected) {
+          info.innerHTML = `<b>${data.name}</b> · ${data.class} · ${data.nodes.length} skills · ${data.edges.length} connections · click a skill to inspect.`
+        } else {
+          const cur = byId[selected]
+          const chips = outFromSelected
+            .map((e) => {
+              const t = titleOf(byId[e.to])
+              const p = e.priority != null ? `<span class="p">P${e.priority}</span>` : ''
+              const cond = e.condition ? ` — ${e.condition}` : ''
+              return `<span class="pill">${p}${t}${cond}</span>`
+            })
+            .join('')
+          info.innerHTML =
+            `Possible next after <b>${titleOf(cur)}</b>${cur.keybind ? ` (${cur.keybind})` : ''}: ` +
+            (chips || '<i>none — this is an end node</i>')
+        }
+      }
+
+      function arrowDef() {
+        return `
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--line)" />
+            </marker>
+            <marker id="arrow-next" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--next)" />
+            </marker>
+          </defs>`
+      }
+
+      window.addEventListener('resize', () => data && render())
+    </script>
+  </body>
+</html>
