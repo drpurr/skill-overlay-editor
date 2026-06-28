@@ -33,21 +33,20 @@ export function SkillNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      {selected && (
-        <button
-          type="button"
-          title="Delete skill (Del)"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation()
-            removeNode(node.id)
-            selectNode(null)
-          }}
-          className="absolute -right-3 -top-3 z-10 grid h-5 w-5 place-items-center rounded-full bg-red-700 text-white ring-2 ring-[#0b0d12] hover:bg-red-600"
-        >
-          <TrashIcon size={11} />
-        </button>
-      )}
+      {/* Always-visible delete affordance (in addition to selecting + Del key). */}
+      <button
+        type="button"
+        title="Delete skill (Del)"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          removeNode(node.id)
+          selectNode(null)
+        }}
+        className="nodrag absolute -right-3 -top-3 z-10 grid h-5 w-5 place-items-center rounded-full bg-red-700 text-white ring-2 ring-[#0b0d12] hover:bg-red-600"
+      >
+        <TrashIcon size={11} />
+      </button>
 
       {/* Connection dots (chaiNNer-style): drag the right dot onto another skill's left
           dot to connect. Dragging the icon body moves it; clicking it selects.
