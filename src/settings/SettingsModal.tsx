@@ -1,13 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useEditorStore } from '../state/editorStore'
 import { CloseIcon } from '../toolbar/icons'
 
 export function SettingsModal() {
   const open = useEditorStore((s) => s.settingsOpen)
   const setOpen = useEditorStore((s) => s.setSettingsOpen)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
+    panelRef.current?.focus() // move focus into the dialog on open
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -21,11 +23,21 @@ export function SettingsModal() {
       onClick={() => setOpen(false)}
     >
       <div
-        className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-lg bg-[var(--color-panel)] shadow-2xl ring-1 ring-black/60"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        tabIndex={-1}
+        className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-lg bg-[var(--color-panel)] shadow-2xl outline-none ring-1 ring-black/60"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-black/40 px-4 py-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/70">Settings</h2>
+          <h2
+            id="settings-title"
+            className="text-sm font-semibold uppercase tracking-wider text-white/70"
+          >
+            Settings
+          </h2>
           <button
             type="button"
             onClick={() => setOpen(false)}

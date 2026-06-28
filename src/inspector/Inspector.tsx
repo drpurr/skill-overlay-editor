@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { iconUrl } from '../media/skills'
+import { formatKeybind } from '../lib/keybind'
 import { useEditorStore } from '../state/editorStore'
 import type { AspectRatio, RotationEdge, SkillNode } from '../schema/rotation'
 
@@ -66,34 +67,7 @@ function NodeInspector({ node }: { node: SkillNode }) {
         />
       </Field>
 
-      <Field label="Icon scale">
-        <div className="flex items-center gap-2">
-          <input
-            type="range"
-            min={0.25}
-            max={3}
-            step={0.05}
-            value={node.scale}
-            onChange={(e) => setNodeScale(node.id, Number(e.target.value))}
-            className="min-w-0 flex-1"
-            aria-label="Icon scale slider"
-          />
-          <input
-            type="number"
-            min={0.1}
-            max={5}
-            step={0.05}
-            value={Number(node.scale.toFixed(2))}
-            onChange={(e) => {
-              const v = Number(e.target.value)
-              if (!Number.isNaN(v)) setNodeScale(node.id, v)
-            }}
-            className="w-16 rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
-            aria-label="Icon scale value"
-          />
-          <span className="text-white/40">×</span>
-        </div>
-      </Field>
+      <ScaleControl scale={node.scale} onChange={(v) => setNodeScale(node.id, v)} />
 
       <label className="flex items-center gap-2 text-white/80">
         <input
@@ -107,7 +81,7 @@ function NodeInspector({ node }: { node: SkillNode }) {
       <Field label={`Possible next (${nextTitles.length})`}>
         {nextTitles.length === 0 ? (
           <span className="text-xs text-white/40">
-            None yet — use the Connect tool to draw arrows.
+            None yet — drag a skill's right dot onto another skill to connect.
           </span>
         ) : (
           <div className="flex flex-wrap gap-1">
@@ -167,11 +141,13 @@ function EdgeInspector({ edge }: { edge: RotationEdge }) {
         <input
           type="number"
           value={edge.priority ?? ''}
-          onChange={(e) =>
+          onChange={(e) => {
+            const raw = e.target.value
+            const n = Number(raw)
             updateEdge(edge.id, {
-              priority: e.target.value === '' ? undefined : Number(e.target.value),
+              priority: raw === '' || Number.isNaN(n) ? undefined : Math.trunc(n),
             })
-          }
+          }}
           placeholder="—"
           className="w-24 rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40 placeholder:text-white/30"
         />
@@ -335,17 +311,46 @@ function KeybindField({
   )
 }
 
-/** Format a keydown into a binding like "Q", "Shift+Z", "Ctrl+Alt+F". Returns null for a
- *  bare modifier press (wait for the real key). */
-function formatKeybind(e: KeyboardEvent): string | null {
-  const k = e.key
-  if (k === 'Shift' || k === 'Control' || k === 'Alt' || k === 'Meta') return null
-  const parts: string[] = []
-  if (e.ctrlKey) parts.push('Ctrl')
-  if (e.altKey) parts.push('Alt')
-  if (e.shiftKey) parts.push('Shift')
-  parts.push(k.length === 1 ? k.toUpperCase() : k)
-  return parts.join('+')
+function ScaleControl({ scale, onChange }: { scale: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState(String(scale))
+  // Re-sync when scale changes from elsewhere (slider, undo/redo, switching builds).
+  useEffect(() => setText(String(scale)), [scale])
+  const commit = () => {
+    const v = Number(text)
+    if (!Number.isNaN(v)) onChange(v)
+    else setText(String(scale))
+  }
+  return (
+    <Field label="Icon scale">
+      <div className="flex items-center gap-2">
+        <input
+          type="range"
+          min={0.25}
+          max={3}
+          step={0.05}
+          value={scale}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="min-w-0 flex-1"
+          aria-label="Icon scale slider"
+        />
+        <input
+          type="number"
+          min={0.1}
+          max={5}
+          step={0.05}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+          }}
+          className="w-16 rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
+          aria-label="Icon scale value"
+        />
+        <span className="text-white/40">×</span>
+      </div>
+    </Field>
+  )
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {

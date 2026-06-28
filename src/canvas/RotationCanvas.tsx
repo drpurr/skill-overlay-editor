@@ -48,8 +48,9 @@ export default function RotationCanvas() {
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState<Node>([])
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState<Edge>([])
 
-  // Re-seed React Flow from the store document whenever it (or selection) changes.
-  // Node positions are committed back on drag stop, so a drag never re-seeds mid-drag.
+  // Re-seed RF nodes from the node/canvas slices (not the whole build) so unrelated edits
+  // like renaming don't churn the canvas. Positions commit on drag stop, so a drag never
+  // re-seeds mid-drag; the merge preserves RF-measured dimensions across re-seeds.
   useEffect(() => {
     const frameNode: Node = {
       id: FRAME_ID,
@@ -75,8 +76,6 @@ export default function RotationCanvas() {
       selected: n.id === selectedNodeId,
       zIndex: 1,
     }))
-    // Merge over the previous nodes so RF-measured dimensions / handle bounds survive the
-    // re-seed (the DOM element doesn't resize, so RF won't re-measure on its own).
     setRfNodes((prev) => {
       const prevById = new Map(prev.map((n) => [n.id, n]))
       const carry = (next: Node): Node => {
@@ -85,7 +84,10 @@ export default function RotationCanvas() {
       }
       return [carry(frameNode), ...skillNodes.map(carry)]
     })
+  }, [build.nodes, build.canvas, build.background, frame, selectedNodeId, setRfNodes])
 
+  // Re-seed RF edges from the edges slice.
+  useEffect(() => {
     setRfEdges(
       build.edges.map((e) => ({
         id: e.id,
@@ -104,7 +106,7 @@ export default function RotationCanvas() {
         },
       })),
     )
-  }, [build, frame, selectedNodeId, selectedEdgeId, setRfNodes, setRfEdges])
+  }, [build.edges, selectedEdgeId, setRfEdges])
 
   const onConnect = useCallback(
     (c: Connection) => {

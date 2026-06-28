@@ -1,5 +1,5 @@
 // Canonical editor state. The `build` slice is the document (saved/exported) and is the
-// only thing tracked for undo/redo via zundo; UI state (selection, tool) is not.
+// only thing tracked for undo/redo via zundo; UI state (selection, view) is not.
 import { create } from 'zustand'
 import { useStore } from 'zustand'
 import { temporal } from 'zundo'
@@ -7,6 +7,7 @@ import type { TemporalState } from 'zundo'
 import type { Skill } from '../media/skills'
 import {
   SCHEMA_VERSION,
+  canvasSchema,
   type AspectRatio,
   type RotationBuild,
   type SkillNode,
@@ -61,9 +62,6 @@ export interface EditorState extends EditorDoc {
 const nowIso = () => new Date().toISOString()
 const newId = () => crypto.randomUUID()
 
-/** Default base icon size as a fraction of screen height (~6% ≈ a Lost Ark HUD skill slot). */
-const DEFAULT_BASE_ICON_PCT = 0.06
-
 export function createEmptyBuild(name: string, classKey: string): RotationBuild {
   const t = nowIso()
   return {
@@ -71,7 +69,7 @@ export function createEmptyBuild(name: string, classKey: string): RotationBuild 
     id: newId(),
     name,
     class: classKey,
-    canvas: { aspect: '16:9', reference: { w: 1920, h: 1080 }, baseIconPct: DEFAULT_BASE_ICON_PCT },
+    canvas: canvasSchema.parse({}), // schema defaults: 16:9, 1920×1080, 6% icons
     background: null,
     nodes: [],
     edges: [],

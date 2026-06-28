@@ -65,7 +65,11 @@ export function TopBar() {
     ) {
       return
     }
-    downloadJson(`${slugify(build.name)}.overlay.json`, buildToExport(build))
+    try {
+      downloadJson(`${slugify(build.name)}.overlay.json`, buildToExport(build))
+    } catch (e) {
+      alert(`Export failed:\n${(e as Error).message}`)
+    }
   }
 
   return (

@@ -23,7 +23,11 @@ export function SkillNode({ data, selected }: NodeProps) {
         alt={node.title}
         draggable={false}
         className={`h-full w-full rounded-md object-cover ring-2 ${
-          selected ? 'ring-[var(--color-accent-2)]' : 'ring-black/70'
+          selected
+            ? 'ring-[var(--color-accent-2)]'
+            : node.isStart
+              ? 'ring-emerald-500/80'
+              : 'ring-black/70'
         }`}
       />
 
