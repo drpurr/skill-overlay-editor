@@ -1,0 +1,3 @@
+[submodule "vendor/lost-ark-media"]
+	path = vendor/lost-ark-media
+	url = https://github.com/drpurr/lost-ark-media.git

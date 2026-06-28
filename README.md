@@ -29,15 +29,19 @@ Zustand + zundo (undo/redo) · Zod (schema/validation) · IndexedDB (`idb`) · T
 ## Skill data
 
 Icons and names come from the **[lost-ark-media](https://github.com/drpurr/lost-ark-media)**
-repo. `scripts/copy-media.mjs` copies its `skills/` tree into `public/media/skills` on
-`predev`/`prebuild`. By default it looks for the repo at `../lib/lost-ark-media`; point it
-elsewhere with the `LOST_ARK_MEDIA_DIR` environment variable.
+repo, bundled here as a git submodule at `vendor/lost-ark-media`. `scripts/copy-media.mjs`
+copies its `skills/` tree into `public/media/skills` on `predev`/`prebuild` (override the
+source with the `LOST_ARK_MEDIA_DIR` environment variable).
 
 ## Develop
 
 ```sh
+git clone --recurse-submodules https://github.com/drpurr/skill-overlay-editor
+cd skill-overlay-editor
+# already cloned without --recurse-submodules? run: git submodule update --init
+
 npm install
-npm run dev        # runs copy-media, then Vite
+npm run dev        # runs copy-media (from the submodule), then Vite
 npm test           # Vitest (schema round-trip + validation)
 npm run build      # typecheck + production build
 ```
