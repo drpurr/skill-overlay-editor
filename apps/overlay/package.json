@@ -1,0 +1,27 @@
+{
+  "name": "@skill-overlay/overlay",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Tauri overlay that renders a Lost Ark rotation export and follows your keystrokes.",
+  "scripts": {
+    "copy-media": "node ../../scripts/copy-media.mjs",
+    "predev": "node ../../scripts/copy-media.mjs",
+    "dev": "vite",
+    "prebuild": "node ../../scripts/copy-media.mjs",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@skill-overlay/schema": "*",
+    "@tauri-apps/api": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}

@@ -1,0 +1,78 @@
+:root {
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent; /* the Tauri window is transparent; the game shows through */
+  overflow: hidden;
+  user-select: none;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+.edges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.node {
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.08s ease, box-shadow 0.08s ease;
+}
+.node .key {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+  padding: 0 3px;
+  font: 600 11px/1.45 system-ui, sans-serif;
+  color: #fff;
+}
+.node.current {
+  box-shadow: 0 0 0 3px #e0a526, 0 0 16px 2px rgba(224, 165, 38, 0.65);
+}
+.node.next {
+  box-shadow: 0 0 0 3px #34d399, 0 0 12px 1px rgba(52, 211, 153, 0.5);
+}
+.node.dim {
+  opacity: 0.32;
+}
+
+.cond {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font: 11px system-ui, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hint {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  font: 13px system-ui, sans-serif;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 6px;
+}

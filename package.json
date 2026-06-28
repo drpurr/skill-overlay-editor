@@ -6,7 +6,7 @@
   "description": "Lost Ark skill-rotation editor + in-game overlay (monorepo).",
   "workspaces": [
     "packages/*",
-    "apps/editor"
+    "apps/*"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",
