@@ -1,8 +1,13 @@
 # skill-overlay-editor
 
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+[![License](https://img.shields.io/github/license/drpurr/skill-overlay-editor?style=for-the-badge)](LICENSE)
+
 Web editor for authoring **Lost Ark skill-rotation flowcharts** and exporting them for a
-game overlay. Phase 1 of the Lost Ark rotation-overlay project — see the plan in
-`../../.claude/plans/` for the full design.
+game overlay.
 
 ## What it does
 
@@ -23,9 +28,10 @@ Zustand + zundo (undo/redo) · Zod (schema/validation) · IndexedDB (`idb`) · T
 
 ## Skill data
 
-Icons and names come from the sibling **`lost-ark-media`** repo. `scripts/copy-media.mjs`
-copies its `skills/` tree into `public/media/skills` on `predev`/`prebuild`. Point it
-elsewhere with `LOST_ARK_MEDIA_DIR`.
+Icons and names come from the **[lost-ark-media](https://github.com/drpurr/lost-ark-media)**
+repo. `scripts/copy-media.mjs` copies its `skills/` tree into `public/media/skills` on
+`predev`/`prebuild`. By default it looks for the repo at `../lib/lost-ark-media`; point it
+elsewhere with the `LOST_ARK_MEDIA_DIR` environment variable.
 
 ## Develop
 

@@ -102,7 +102,7 @@ export default function RotationCanvas() {
           type: MarkerType.ArrowClosed,
           width: 26,
           height: 26,
-          color: e.id === selectedEdgeId ? '#e0a526' : '#ffffff',
+          color: '#FFFFFF',
         },
       })),
     )
@@ -186,6 +186,7 @@ export default function RotationCanvas() {
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
         connectionMode={ConnectionMode.Loose}
+        connectionLineStyle={{ stroke: '#FFFFFF', strokeWidth: 3 }}
         snapToGrid={snap}
         snapGrid={[GRID, GRID]}
         minZoom={0.2}

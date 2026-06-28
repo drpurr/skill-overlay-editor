@@ -74,7 +74,7 @@ export function RotationEdge({ id, source, target, markerEnd, selected, data }: 
         markerEnd={markerEnd}
         interactionWidth={26}
         style={{
-          stroke: selected ? 'var(--color-accent-2)' : '#ffffff',
+          stroke: '#FFFFFF',
           strokeWidth: selected ? 4 : 3,
         }}
       />
