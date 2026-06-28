@@ -19,17 +19,21 @@ export function TopBar() {
   }, [])
   useEffect(() => refresh(), [refresh, build.id, build.name])
 
-  const onNew = () => {
+  const onNew = async () => {
+    await saveBuild(build).catch(() => {}) // flush current build before replacing it
     newBuild('Untitled Build', build.class)
     clearHistory()
   }
 
   const onSwitch = async (id: string) => {
     if (id === build.id) return
+    await saveBuild(build).catch(() => {}) // flush current build before switching away
     const b = await getBuild(id)
     if (b) {
       loadBuild(b)
       clearHistory()
+    } else {
+      alert('That build could not be loaded (it may be corrupted).')
     }
   }
 

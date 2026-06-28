@@ -191,7 +191,8 @@ export default function RotationCanvas() {
         fitView
         fitViewOptions={{ padding: 0.15 }}
         deleteKeyCode={['Delete', 'Backspace']}
-        multiSelectionKeyCode={['Shift']}
+        selectionKeyCode={null}
+        multiSelectionKeyCode={null}
       >
         {showGrid ? (
           <Background variant={BackgroundVariant.Lines} gap={GRID} size={1} color="#222a37" />

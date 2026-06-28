@@ -7,15 +7,35 @@ export function clearHistory(): void {
   useEditorStore.temporal.getState().clear()
 }
 
-/** Debounced autosave of the active build to IndexedDB. */
+/** Debounced autosave of the active build to IndexedDB, plus a flush on tab-hide/unload. */
 export function useAutosave(delay = 600): void {
   const build = useEditorStore((s) => s.build)
+  const latest = useRef(build)
+  latest.current = build
+
   useEffect(() => {
     const t = setTimeout(() => {
       void saveBuild(build).catch(() => {})
     }, delay)
     return () => clearTimeout(t)
   }, [build, delay])
+
+  // Persist immediately when the tab is hidden or unloaded — the debounce could otherwise
+  // drop the last edits.
+  useEffect(() => {
+    const flush = () => {
+      void saveBuild(latest.current).catch(() => {})
+    }
+    const onVisibility = () => {
+      if (document.hidden) flush()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', flush)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', flush)
+    }
+  }, [])
 }
 
 /** On first mount, load the most-recently-updated saved build (if any). */

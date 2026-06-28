@@ -138,7 +138,7 @@ export const useEditorStore = create<EditorState>()(
         moveNode: (id, x, y) =>
           mutate(mapNodes((n) => (n.id === id ? { ...n, x: clamp01(x), y: clamp01(y) } : n))),
         setNodeScale: (id, scale) =>
-          mutate(mapNodes((n) => (n.id === id ? { ...n, scale: Math.max(0.1, scale) } : n))),
+          mutate(mapNodes((n) => (n.id === id ? { ...n, scale: clamp(scale, 0.1, 5) } : n))),
         setNodeKeybind: (id, keybind) =>
           mutate(mapNodes((n) => (n.id === id ? { ...n, keybind } : n))),
         toggleNodeStart: (id) =>
