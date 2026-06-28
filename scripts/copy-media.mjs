@@ -47,7 +47,8 @@ if (!mediaRoot) {
 }
 
 const src = resolve(mediaRoot, 'skills')
-const dest = resolve(projectRoot, 'public', 'media', 'skills')
+// Destination is relative to the calling workspace (npm runs scripts with cwd = the app dir).
+const dest = resolve(process.cwd(), 'public', 'media', 'skills')
 
 await rm(dest, { recursive: true, force: true })
 await mkdir(dirname(dest), { recursive: true })

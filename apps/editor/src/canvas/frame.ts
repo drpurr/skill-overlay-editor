@@ -1,7 +1,7 @@
 // The WYSIWYG canvas renders a fixed-size "screen frame" in React Flow flow-units.
 // Node positions are stored normalized 0..1 relative to this frame, so the layout is
 // resolution-independent and maps directly onto the overlay's screen.
-import type { AspectRatio } from '../schema/rotation'
+import type { AspectRatio } from '@skill-overlay/schema'
 
 /** Frame width in flow units (height derives from the aspect ratio). */
 export const FRAME_W = 1280

@@ -3,7 +3,7 @@ import {
   overlayExportSchema,
   rotationBuildSchema,
   type RotationBuild,
-} from './rotation'
+} from '@skill-overlay/schema'
 import { buildToExport } from '../io/exporter'
 import { exportToBuild, importAny, parseProject } from '../io/importer'
 

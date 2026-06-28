@@ -21,7 +21,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@skill-overlay/schema": ["../../packages/schema/src/index.ts"]
     }
   },
   "include": ["src"]

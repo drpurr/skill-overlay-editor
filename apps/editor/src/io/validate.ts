@@ -1,4 +1,4 @@
-import type { RotationBuild } from '../schema/rotation'
+import type { RotationBuild } from '@skill-overlay/schema'
 
 export interface ValidationIssue {
   level: 'error' | 'warning'

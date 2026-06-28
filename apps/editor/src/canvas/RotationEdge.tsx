@@ -8,7 +8,7 @@ import {
 } from '@xyflow/react'
 import { useEditorStore } from '../state/editorStore'
 import { CloseIcon } from '../toolbar/icons'
-import type { RotationEdge as RotationEdgeData } from '../schema/rotation'
+import type { RotationEdge as RotationEdgeData } from '@skill-overlay/schema'
 
 /** Gap (flow-units) left between the line ends and each icon. */
 const TARGET_GAP = 12

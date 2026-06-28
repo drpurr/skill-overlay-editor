@@ -11,7 +11,7 @@ import {
   type AspectRatio,
   type RotationBuild,
   type SkillNode,
-} from '../schema/rotation'
+} from '@skill-overlay/schema'
 
 /** Slice tracked by undo/redo history. */
 export interface EditorDoc {

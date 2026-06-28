@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rotationBuildSchema, type RotationBuild } from '../schema/rotation'
+import { rotationBuildSchema, type RotationBuild } from '@skill-overlay/schema'
 import { exportErrors, validateBuild } from './validate'
 
 function valid(): RotationBuild {

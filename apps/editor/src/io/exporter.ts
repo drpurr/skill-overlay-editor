@@ -2,7 +2,7 @@ import {
   overlayExportSchema,
   type OverlayExport,
   type RotationBuild,
-} from '../schema/rotation'
+} from '@skill-overlay/schema'
 
 /**
  * Project the full editable build down to the lean overlay export the runtime consumes.

@@ -9,6 +9,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@skill-overlay/schema': fileURLToPath(
+        new URL('../../packages/schema/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {

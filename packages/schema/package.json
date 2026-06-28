@@ -1,0 +1,23 @@
+{
+  "name": "@skill-overlay/schema",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared Zod schema + types for the Lost Ark rotation overlay export (editor + overlay).",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3",
+    "vitest": "^4.1.9"
+  }
+}

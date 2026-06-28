@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { iconUrl } from '../media/skills'
-import { formatKeybind } from '../lib/keybind'
+import { formatKeybind } from '@skill-overlay/schema'
 import { useEditorStore } from '../state/editorStore'
-import type { AspectRatio, RotationEdge, SkillNode } from '../schema/rotation'
+import type { AspectRatio, RotationEdge, SkillNode } from '@skill-overlay/schema'
 
 const ASPECTS: AspectRatio[] = ['16:9', '16:10', '21:9', '4:3']
 

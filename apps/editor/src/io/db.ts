@@ -1,7 +1,7 @@
 // Local-first persistence: every build is stored in IndexedDB keyed by id. The editor
 // autosaves the active build here; the build switcher lists what's stored.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import { rotationBuildSchema, type RotationBuild } from '../schema/rotation'
+import { rotationBuildSchema, type RotationBuild } from '@skill-overlay/schema'
 
 interface EditorDB extends DBSchema {
   builds: {

@@ -2,7 +2,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { iconUrl } from '../media/skills'
 import { useEditorStore } from '../state/editorStore'
 import { TrashIcon } from '../toolbar/icons'
-import type { SkillNode as SkillNodeData } from '../schema/rotation'
+import type { SkillNode as SkillNodeData } from '@skill-overlay/schema'
 
 export interface SkillNodeRFData {
   node: SkillNodeData

@@ -4,7 +4,7 @@ import {
   rotationBuildSchema,
   type OverlayExport,
   type RotationBuild,
-} from '../schema/rotation'
+} from '@skill-overlay/schema'
 
 const newId = () => crypto.randomUUID()
 const nowIso = () => new Date().toISOString()
