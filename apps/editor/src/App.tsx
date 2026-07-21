@@ -18,16 +18,15 @@ export default function App() {
         <ToolBar />
 
         <div className="flex min-h-0 flex-1">
+          <aside className="w-96 shrink-0 border-r border-black/50">
+            <SkillLibraryPanel />
+          </aside>
           <main className="relative min-w-0 flex-1">
             <RotationCanvas />
           </main>
           <aside className="w-72 shrink-0 border-l border-black/50">
             <Inspector />
           </aside>
-        </div>
-
-        <div className="h-44 shrink-0 border-t border-black/50">
-          <SkillLibraryPanel />
         </div>
       </div>
 

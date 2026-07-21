@@ -86,7 +86,7 @@ export function SkillLibraryPanel() {
         {error && <p className="px-2 text-sm text-red-400">{error}</p>}
         {loading && <p className="px-2 text-sm text-white/40">Loading…</p>}
         {!loading && !error && (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {filtered.map((skill) => (
               <button
                 key={skill.id}
