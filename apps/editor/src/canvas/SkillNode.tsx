@@ -16,13 +16,13 @@ export function SkillNode({ data, selected }: NodeProps) {
   const removeNode = useEditorStore((s) => s.removeNode)
   const selectNode = useEditorStore((s) => s.selectNode)
 
-  // Delete button scales with the icon (always ~1/3 of its side, so always smaller) and
-  // floats just off the icon's top-right corner rather than covering it.
-  const trashSize = Math.max(14, sizePx * 0.34)
+  // Delete button: hover-only, scales with the icon (~1/4 of its side, always smaller),
+  // floating just off the icon's top-right corner rather than covering it.
+  const trashSize = Math.max(12, sizePx * 0.26)
   const trashGap = Math.max(3, sizePx * 0.08)
 
   return (
-    <div className="relative" style={{ width: sizePx, height: sizePx }}>
+    <div className="group relative" style={{ width: sizePx, height: sizePx }}>
       <img
         src={iconUrl(node.class, node.icon)}
         alt={node.title}
@@ -42,7 +42,7 @@ export function SkillNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      {/* Always-visible delete affordance (in addition to selecting + Del key). */}
+      {/* Hover-only delete affordance (in addition to selecting + Del key). */}
       <button
         type="button"
         title="Delete skill (Del)"
@@ -52,7 +52,7 @@ export function SkillNode({ data, selected }: NodeProps) {
           removeNode(node.id)
           selectNode(null)
         }}
-        className="nodrag absolute z-10 grid place-items-center rounded-full bg-red-700 text-white ring-2 ring-[#0b0d12] hover:bg-red-600"
+        className="nodrag pointer-events-none absolute z-10 grid place-items-center rounded-full bg-red-700 text-white opacity-0 ring-2 ring-[#0b0d12] transition-opacity hover:bg-red-600 group-hover:pointer-events-auto group-hover:opacity-100"
         style={{
           width: trashSize,
           height: trashSize,

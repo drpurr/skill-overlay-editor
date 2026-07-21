@@ -26,6 +26,8 @@ export function exportToBuild(exp: OverlayExport): RotationBuild {
     background: null,
     nodes: exp.nodes.map((n) => ({ ...n, title: '' })),
     edges: exp.edges,
+    boxes: exp.boxes,
+    texts: exp.texts,
     createdAt: t,
     updatedAt: t,
   })

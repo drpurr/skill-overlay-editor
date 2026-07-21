@@ -21,6 +21,8 @@ describe('overlayExportSchema', () => {
       canvas: canvasSchema.parse({}),
       nodes: [],
       edges: [],
+      boxes: [],
+      texts: [],
     }
     expect(overlayExportSchema.parse(JSON.parse(JSON.stringify(exp)))).toEqual(exp)
   })

@@ -34,6 +34,8 @@ export function buildToExport(build: RotationBuild): OverlayExport {
       condition: e.condition,
       priority: e.priority,
     })),
+    boxes: build.boxes,
+    texts: build.texts,
   }
   return overlayExportSchema.parse(draft)
 }

@@ -35,6 +35,14 @@ function borderPoint(from: Box, toward: Box, gap: number) {
   return { x, y }
 }
 
+/** Convert a hex color + 0..1 opacity into rgba(). */
+function rgba(hex: string, opacity: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return hex
+  const n = parseInt(m[1], 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${opacity})`
+}
+
 function arrowDefs(): string {
   return `<defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
@@ -61,6 +69,22 @@ export function renderOverlay(root: HTMLElement, exp: OverlayExport): void {
   const ox = (w - fw) / 2
   const oy = (h - fh) / 2
   const base = exp.canvas.baseIconPct * fh
+
+  const pxScale = fh / ref.h // reference-px -> screen-px
+
+  // annotation boxes (bottom layer, under arrows and icons)
+  for (const bx of exp.boxes) {
+    const el = document.createElement('div')
+    el.className = 'annot-box'
+    el.style.left = `${ox + bx.x * fw}px`
+    el.style.top = `${oy + bx.y * fh}px`
+    el.style.width = `${bx.w * fw}px`
+    el.style.height = `${bx.h * fh}px`
+    el.style.borderRadius = `${bx.radius * fh}px`
+    el.style.background = rgba(bx.color, bx.opacity)
+    el.style.border = `${bx.borderWidth * pxScale}px solid ${rgba(bx.borderColor, bx.borderOpacity)}`
+    root.appendChild(el)
+  }
 
   const svg = document.createElementNS(SVGNS, 'svg')
   svg.setAttribute('class', 'edges')
@@ -121,6 +145,23 @@ export function renderOverlay(root: HTMLElement, exp: OverlayExport): void {
       k.className = 'key'
       k.textContent = n.keybind
       el.appendChild(k)
+    }
+    root.appendChild(el)
+  }
+
+  // text labels (top layer), centered on their position
+  for (const t of exp.texts) {
+    const el = document.createElement('div')
+    el.className = 'annot-text'
+    el.textContent = t.text
+    el.style.left = `${ox + t.x * fw}px`
+    el.style.top = `${oy + t.y * fh}px`
+    el.style.fontFamily = t.font
+    el.style.fontSize = `${t.size * fh}px`
+    el.style.color = rgba(t.color, t.opacity)
+    if (t.borderWidth > 0) {
+      el.style.webkitTextStroke = `${t.borderWidth * pxScale}px ${t.borderColor}`
+      el.style.paintOrder = 'stroke fill'
     }
     root.appendChild(el)
   }

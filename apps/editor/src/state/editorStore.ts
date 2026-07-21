@@ -8,10 +8,15 @@ import type { Skill } from '../media/skills'
 import {
   SCHEMA_VERSION,
   canvasSchema,
+  type AnnotationBox,
   type AspectRatio,
   type RotationBuild,
   type SkillNode,
+  type TextLabel,
 } from '@skill-overlay/schema'
+
+/** Canvas interaction mode: select/move, draw annotation boxes, or place text. */
+export type Tool = 'select' | 'box' | 'text'
 
 /** Slice tracked by undo/redo history. */
 export interface EditorDoc {
@@ -22,14 +27,23 @@ export interface EditorState extends EditorDoc {
   // --- UI (not undoable) ---
   selectedNodeId: string | null
   selectedEdgeId: string | null
+  selectedBoxId: string | null
+  selectedTextId: string | null
+  tool: Tool
   snapToGrid: boolean
+  /** Snap for annotation boxes/text (separate from icon snap); defaults ON. */
+  annotationSnap: boolean
   showGrid: boolean
   settingsOpen: boolean
 
   // --- selection / view ---
   selectNode: (id: string | null) => void
   selectEdge: (id: string | null) => void
+  selectBox: (id: string | null) => void
+  selectText: (id: string | null) => void
+  setTool: (tool: Tool) => void
   setSnapToGrid: (on: boolean) => void
+  setAnnotationSnap: (on: boolean) => void
   setShowGrid: (on: boolean) => void
   setSettingsOpen: (open: boolean) => void
 
@@ -53,6 +67,14 @@ export interface EditorState extends EditorDoc {
   updateEdge: (id: string, patch: { condition?: string; priority?: number }) => void
   removeEdge: (id: string) => void
 
+  // --- annotations ---
+  addBox: (x: number, y: number, w: number, h: number) => string
+  updateBox: (id: string, patch: Partial<Omit<AnnotationBox, 'id'>>) => void
+  removeBox: (id: string) => void
+  addText: (x: number, y: number) => string
+  updateText: (id: string, patch: Partial<Omit<TextLabel, 'id'>>) => void
+  removeText: (id: string) => void
+
   // --- canvas ---
   setResolution: (w: number, h: number) => void
   setBaseIconPct: (pct: number) => void
@@ -73,6 +95,8 @@ export function createEmptyBuild(name: string, classKey: string): RotationBuild 
     background: null,
     nodes: [],
     edges: [],
+    boxes: [],
+    texts: [],
     createdAt: t,
     updatedAt: t,
   }
@@ -94,13 +118,25 @@ export const useEditorStore = create<EditorState>()(
         build: createEmptyBuild('Untitled Build', 'berserker'),
         selectedNodeId: null,
         selectedEdgeId: null,
-        snapToGrid: false, // freeform placement by default; snapping is opt-in
+        selectedBoxId: null,
+        selectedTextId: null,
+        tool: 'select',
+        snapToGrid: false, // freeform icon placement by default; snapping is opt-in
+        annotationSnap: true, // boxes/text snap by default
         showGrid: false,
         settingsOpen: false,
 
-        selectNode: (id) => set({ selectedNodeId: id, selectedEdgeId: null }),
-        selectEdge: (id) => set({ selectedEdgeId: id, selectedNodeId: null }),
+        selectNode: (id) =>
+          set({ selectedNodeId: id, selectedEdgeId: null, selectedBoxId: null, selectedTextId: null }),
+        selectEdge: (id) =>
+          set({ selectedEdgeId: id, selectedNodeId: null, selectedBoxId: null, selectedTextId: null }),
+        selectBox: (id) =>
+          set({ selectedBoxId: id, selectedNodeId: null, selectedEdgeId: null, selectedTextId: null }),
+        selectText: (id) =>
+          set({ selectedTextId: id, selectedNodeId: null, selectedEdgeId: null, selectedBoxId: null }),
+        setTool: (tool) => set({ tool }),
         setSnapToGrid: (on) => set({ snapToGrid: on }),
+        setAnnotationSnap: (on) => set({ annotationSnap: on }),
         setShowGrid: (on) => set({ showGrid: on }),
         setSettingsOpen: (open) => set({ settingsOpen: open }),
 
@@ -109,9 +145,17 @@ export const useEditorStore = create<EditorState>()(
             build: createEmptyBuild(name, classKey),
             selectedNodeId: null,
             selectedEdgeId: null,
+            selectedBoxId: null,
+            selectedTextId: null,
           }),
         loadBuild: (build) =>
-          set({ build, selectedNodeId: null, selectedEdgeId: null }),
+          set({
+            build,
+            selectedNodeId: null,
+            selectedEdgeId: null,
+            selectedBoxId: null,
+            selectedTextId: null,
+          }),
         setName: (name) => mutate((b) => ({ ...b, name })),
         setClass: (classKey) => mutate((b) => ({ ...b, class: classKey })),
 
@@ -161,6 +205,57 @@ export const useEditorStore = create<EditorState>()(
           })),
         removeEdge: (id) =>
           mutate((b) => ({ ...b, edges: b.edges.filter((e) => e.id !== id) })),
+
+        addBox: (x, y, w, h) => {
+          const id = newId()
+          const box: AnnotationBox = {
+            id,
+            x: clamp01(x),
+            y: clamp01(y),
+            w: clamp01(w),
+            h: clamp01(h),
+            radius: 0.015,
+            color: '#FFFFFF',
+            opacity: 0.12,
+            borderColor: '#FFFFFF',
+            borderOpacity: 0.6,
+            borderWidth: 2,
+          }
+          mutate((b) => ({ ...b, boxes: [...b.boxes, box] }))
+          return id
+        },
+        updateBox: (id, patch) =>
+          mutate((b) => ({
+            ...b,
+            boxes: b.boxes.map((box) => (box.id === id ? { ...box, ...patch } : box)),
+          })),
+        removeBox: (id) =>
+          mutate((b) => ({ ...b, boxes: b.boxes.filter((box) => box.id !== id) })),
+
+        addText: (x, y) => {
+          const id = newId()
+          const label: TextLabel = {
+            id,
+            x: clamp01(x),
+            y: clamp01(y),
+            text: 'New text',
+            font: 'system-ui',
+            size: 0.025,
+            color: '#FFFFFF',
+            opacity: 1,
+            borderColor: '#000000',
+            borderWidth: 0,
+          }
+          mutate((b) => ({ ...b, texts: [...b.texts, label] }))
+          return id
+        },
+        updateText: (id, patch) =>
+          mutate((b) => ({
+            ...b,
+            texts: b.texts.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+          })),
+        removeText: (id) =>
+          mutate((b) => ({ ...b, texts: b.texts.filter((t) => t.id !== id) })),
 
         setResolution: (w, h) =>
           mutate((b) => ({

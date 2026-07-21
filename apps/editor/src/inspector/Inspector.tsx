@@ -2,7 +2,20 @@ import { useEffect, useState } from 'react'
 import { iconUrl } from '../media/skills'
 import { formatKeybind } from '@skill-overlay/schema'
 import { useEditorStore } from '../state/editorStore'
-import type { RotationEdge, SkillNode } from '@skill-overlay/schema'
+import type { AnnotationBox, RotationEdge, SkillNode, TextLabel } from '@skill-overlay/schema'
+
+const FONTS = [
+  'system-ui',
+  'Arial',
+  'Verdana',
+  'Tahoma',
+  'Trebuchet MS',
+  'Segoe UI',
+  'Georgia',
+  'Times New Roman',
+  'Courier New',
+  'Impact',
+]
 
 const RESOLUTIONS: { label: string; w: number; h: number }[] = [
   { label: '1920 × 1080 — 1080p (FHD)', w: 1920, h: 1080 },
@@ -20,20 +33,28 @@ export function Inspector() {
   const build = useEditorStore((s) => s.build)
   const selNodeId = useEditorStore((s) => s.selectedNodeId)
   const selEdgeId = useEditorStore((s) => s.selectedEdgeId)
+  const selBoxId = useEditorStore((s) => s.selectedBoxId)
+  const selTextId = useEditorStore((s) => s.selectedTextId)
 
   const node = build.nodes.find((n) => n.id === selNodeId)
   const edge = build.edges.find((e) => e.id === selEdgeId)
+  const box = build.boxes.find((b) => b.id === selBoxId)
+  const text = build.texts.find((t) => t.id === selTextId)
 
   return (
     <div className="flex h-full flex-col bg-[var(--color-panel)] text-sm">
       <div className="border-b border-black/40 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-white/50">
-        {node ? 'Skill' : edge ? 'Connection' : 'Canvas'}
+        {node ? 'Skill' : edge ? 'Connection' : box ? 'Box' : text ? 'Text' : 'Canvas'}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {node ? (
           <NodeInspector node={node} />
         ) : edge ? (
           <EdgeInspector edge={edge} />
+        ) : box ? (
+          <BoxInspector box={box} />
+        ) : text ? (
+          <TextInspector label={text} />
         ) : (
           <CanvasInspector />
         )}
@@ -236,6 +257,200 @@ function CanvasInspector() {
         {build.nodes.length} skills · {build.edges.length} connections · {starts} start
         {starts === 1 ? '' : 's'}
       </div>
+    </div>
+  )
+}
+
+function BoxInspector({ box }: { box: AnnotationBox }) {
+  const refH = useEditorStore((s) => s.build.canvas.reference.h)
+  const updateBox = useEditorStore((s) => s.updateBox)
+  const removeBox = useEditorStore((s) => s.removeBox)
+  const selectBox = useEditorStore((s) => s.selectBox)
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Field label={`Fill transparency · ${Math.round(box.opacity * 100)}%`}>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={box.color}
+            onChange={(e) => updateBox(box.id, { color: e.target.value })}
+            aria-label="Fill color"
+            className="h-7 w-9 shrink-0 cursor-pointer rounded bg-transparent"
+          />
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={box.opacity}
+            onChange={(e) => updateBox(box.id, { opacity: Number(e.target.value) })}
+            className="min-w-0 flex-1"
+            aria-label="Fill opacity"
+          />
+        </div>
+      </Field>
+
+      <Field label={`Corner radius · ${Math.round(box.radius * refH)}px`}>
+        <input
+          type="range"
+          min={0}
+          max={0.06}
+          step={0.002}
+          value={box.radius}
+          onChange={(e) => updateBox(box.id, { radius: Number(e.target.value) })}
+          className="w-full"
+          aria-label="Corner radius"
+        />
+      </Field>
+
+      <Field label={`Border · ${box.borderWidth}px · ${Math.round(box.borderOpacity * 100)}%`}>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={box.borderColor}
+            onChange={(e) => updateBox(box.id, { borderColor: e.target.value })}
+            aria-label="Border color"
+            className="h-7 w-9 shrink-0 cursor-pointer rounded bg-transparent"
+          />
+          <input
+            type="range"
+            min={0}
+            max={12}
+            step={1}
+            value={box.borderWidth}
+            onChange={(e) => updateBox(box.id, { borderWidth: Number(e.target.value) })}
+            className="min-w-0 flex-1"
+            aria-label="Border width"
+          />
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={box.borderOpacity}
+            onChange={(e) => updateBox(box.id, { borderOpacity: Number(e.target.value) })}
+            className="min-w-0 flex-1"
+            aria-label="Border opacity"
+          />
+        </div>
+      </Field>
+
+      <p className="text-xs text-white/40">Drag to move · drag the handles to resize.</p>
+
+      <button
+        type="button"
+        onClick={() => {
+          removeBox(box.id)
+          selectBox(null)
+        }}
+        className="mt-2 rounded bg-red-900/60 px-3 py-1.5 text-sm text-red-200 hover:bg-red-800/70"
+      >
+        Delete box
+      </button>
+    </div>
+  )
+}
+
+function TextInspector({ label }: { label: TextLabel }) {
+  const refH = useEditorStore((s) => s.build.canvas.reference.h)
+  const updateText = useEditorStore((s) => s.updateText)
+  const removeText = useEditorStore((s) => s.removeText)
+  const selectText = useEditorStore((s) => s.selectText)
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Field label="Text">
+        <textarea
+          value={label.text}
+          onChange={(e) => updateText(label.id, { text: e.target.value })}
+          rows={2}
+          className="w-full resize-y rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
+        />
+      </Field>
+
+      <Field label="Font">
+        <select
+          value={label.font}
+          onChange={(e) => updateText(label.id, { font: e.target.value })}
+          className="w-full rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
+          style={{ fontFamily: label.font }}
+        >
+          {FONTS.map((f) => (
+            <option key={f} value={f} style={{ fontFamily: f }}>
+              {f}
+            </option>
+          ))}
+        </select>
+      </Field>
+
+      <Field label={`Size · ${Math.round(label.size * refH)}px`}>
+        <input
+          type="range"
+          min={0.012}
+          max={0.1}
+          step={0.002}
+          value={label.size}
+          onChange={(e) => updateText(label.id, { size: Number(e.target.value) })}
+          className="w-full"
+          aria-label="Text size"
+        />
+      </Field>
+
+      <Field label={`Color · transparency ${Math.round(label.opacity * 100)}%`}>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={label.color}
+            onChange={(e) => updateText(label.id, { color: e.target.value })}
+            aria-label="Text color"
+            className="h-7 w-9 shrink-0 cursor-pointer rounded bg-transparent"
+          />
+          <input
+            type="range"
+            min={0.1}
+            max={1}
+            step={0.05}
+            value={label.opacity}
+            onChange={(e) => updateText(label.id, { opacity: Number(e.target.value) })}
+            className="min-w-0 flex-1"
+            aria-label="Text opacity"
+          />
+        </div>
+      </Field>
+
+      <Field label={`Text border · ${label.borderWidth}px`}>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={label.borderColor}
+            onChange={(e) => updateText(label.id, { borderColor: e.target.value })}
+            aria-label="Text border color"
+            className="h-7 w-9 shrink-0 cursor-pointer rounded bg-transparent"
+          />
+          <input
+            type="range"
+            min={0}
+            max={8}
+            step={0.5}
+            value={label.borderWidth}
+            onChange={(e) => updateText(label.id, { borderWidth: Number(e.target.value) })}
+            className="min-w-0 flex-1"
+            aria-label="Text border width"
+          />
+        </div>
+      </Field>
+
+      <button
+        type="button"
+        onClick={() => {
+          removeText(label.id)
+          selectText(null)
+        }}
+        className="mt-2 rounded bg-red-900/60 px-3 py-1.5 text-sm text-red-200 hover:bg-red-800/70"
+      >
+        Delete text
+      </button>
     </div>
   )
 }

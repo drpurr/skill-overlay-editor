@@ -75,6 +75,24 @@ export const SettingsIcon = (p: IconProps) => (
   </Svg>
 )
 
+export const CursorIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m4 3 8 17 2.5-6.5L21 11z" />
+  </Svg>
+)
+
+export const BoxIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="6" width="16" height="12" rx="3" />
+  </Svg>
+)
+
+export const TextIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M5 6V4h14v2M12 4v16M9 20h6" />
+  </Svg>
+)
+
 export const TrashIcon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />

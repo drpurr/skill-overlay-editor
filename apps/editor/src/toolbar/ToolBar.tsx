@@ -1,22 +1,31 @@
 import { useReactFlow, useViewport } from '@xyflow/react'
-import { useEditorStore, useTemporal } from '../state/editorStore'
+import { useEditorStore, useTemporal, type Tool } from '../state/editorStore'
 import {
+  BoxIcon,
+  CursorIcon,
   FitIcon,
   GridIcon,
   RedoIcon,
   SettingsIcon,
   SnapIcon,
+  TextIcon,
   UndoIcon,
   ZoomInIcon,
   ZoomOutIcon,
 } from './icons'
 
 export function ToolBar() {
+  const tool = useEditorStore((s) => s.tool)
+  const setTool = useEditorStore((s) => s.setTool)
   const snap = useEditorStore((s) => s.snapToGrid)
   const setSnap = useEditorStore((s) => s.setSnapToGrid)
+  const annotationSnap = useEditorStore((s) => s.annotationSnap)
+  const setAnnotationSnap = useEditorStore((s) => s.setAnnotationSnap)
   const showGrid = useEditorStore((s) => s.showGrid)
   const setShowGrid = useEditorStore((s) => s.setShowGrid)
   const setSettingsOpen = useEditorStore((s) => s.setSettingsOpen)
+
+  const pick = (t: Tool) => () => setTool(t)
 
   const undo = useTemporal((s) => s.undo)
   const redo = useTemporal((s) => s.redo)
@@ -37,9 +46,29 @@ export function ToolBar() {
 
       <Divider />
 
-      <IconButton title="Snap to grid" active={snap} onClick={() => setSnap(!snap)}>
+      <IconButton title="Select / move" active={tool === 'select'} onClick={pick('select')}>
+        <CursorIcon />
+      </IconButton>
+      <IconButton title="Draw box (drag on canvas)" active={tool === 'box'} onClick={pick('box')}>
+        <BoxIcon />
+      </IconButton>
+      <IconButton title="Place text (click on canvas)" active={tool === 'text'} onClick={pick('text')}>
+        <TextIcon />
+      </IconButton>
+
+      <Divider />
+
+      <IconButton title="Snap skill icons to grid" active={snap} onClick={() => setSnap(!snap)}>
         <SnapIcon />
       </IconButton>
+      <label className="flex select-none items-center gap-1.5 px-1 text-xs text-white/70">
+        <input
+          type="checkbox"
+          checked={annotationSnap}
+          onChange={(e) => setAnnotationSnap(e.target.checked)}
+        />
+        Snap shapes
+      </label>
       <IconButton title="Show alignment grid" active={showGrid} onClick={() => setShowGrid(!showGrid)}>
         <GridIcon />
       </IconButton>

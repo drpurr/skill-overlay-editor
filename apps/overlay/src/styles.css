@@ -43,6 +43,19 @@ body {
   font: 600 11px/1.45 system-ui, sans-serif;
   color: #fff;
 }
+.annot-box {
+  position: absolute;
+  pointer-events: none;
+}
+
+.annot-text {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  white-space: pre;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
 .cond {
   position: absolute;
   transform: translate(-50%, -100%);
