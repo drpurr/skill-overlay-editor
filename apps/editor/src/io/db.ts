@@ -2,6 +2,7 @@
 // autosaves the active build here; the build switcher lists what's stored.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import { rotationBuildSchema, type RotationBuild } from '@skill-overlay/schema'
+import { sanitizeBuild } from './sanitize'
 
 interface EditorDB extends DBSchema {
   builds: {
@@ -41,9 +42,10 @@ export async function saveBuild(build: RotationBuild): Promise<void> {
 export async function getBuild(id: string): Promise<RotationBuild | null> {
   const raw = await (await db()).get(STORE, id)
   if (!raw) return null
-  // Defensive: tolerate older/partial records rather than crashing the app.
+  // Defensive: tolerate older/partial records rather than crashing the app, and repair
+  // referential integrity (e.g. dangling edges) left behind by older versions.
   const parsed = rotationBuildSchema.safeParse(raw)
-  return parsed.success ? parsed.data : null
+  return parsed.success ? sanitizeBuild(parsed.data) : null
 }
 
 export async function deleteBuild(id: string): Promise<void> {

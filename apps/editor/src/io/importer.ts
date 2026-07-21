@@ -5,19 +5,20 @@ import {
   type OverlayExport,
   type RotationBuild,
 } from '@skill-overlay/schema'
+import { sanitizeBuild } from './sanitize'
 
 const newId = () => crypto.randomUUID()
 const nowIso = () => new Date().toISOString()
 
 /** Parse a saved project file. Throws (ZodError) if it doesn't match the schema. */
 export function parseProject(json: unknown): RotationBuild {
-  return rotationBuildSchema.parse(json)
+  return sanitizeBuild(rotationBuildSchema.parse(json))
 }
 
 /** Rebuild an editable project from an overlay export (titles/background are not present). */
 export function exportToBuild(exp: OverlayExport): RotationBuild {
   const t = nowIso()
-  return rotationBuildSchema.parse({
+  return sanitizeBuild(rotationBuildSchema.parse({
     schemaVersion: SCHEMA_VERSION,
     id: newId(),
     name: exp.name,
@@ -30,7 +31,7 @@ export function exportToBuild(exp: OverlayExport): RotationBuild {
     texts: exp.texts,
     createdAt: t,
     updatedAt: t,
-  })
+  }))
 }
 
 /**

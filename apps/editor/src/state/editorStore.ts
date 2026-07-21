@@ -194,8 +194,10 @@ export const useEditorStore = create<EditorState>()(
 
         connectNodes: (from, to) => {
           if (from === to) return
-          const exists = get().build.edges.some((e) => e.from === from && e.to === to)
-          if (exists) return
+          const { nodes, edges } = get().build
+          // Both endpoints must be live skills (never mint a dangling edge).
+          if (!nodes.some((n) => n.id === from) || !nodes.some((n) => n.id === to)) return
+          if (edges.some((e) => e.from === from && e.to === to)) return
           mutate((b) => ({ ...b, edges: [...b.edges, { id: newId(), from, to }] }))
         },
         updateEdge: (id, patch) =>

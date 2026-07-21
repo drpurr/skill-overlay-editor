@@ -10,6 +10,9 @@ import {
  * The result is validated against `overlayExportSchema` so a malformed export can't escape.
  */
 export function buildToExport(build: RotationBuild): OverlayExport {
+  // Belt-and-braces: never export an edge whose endpoint skill is missing.
+  const ids = new Set(build.nodes.map((n) => n.id))
+  const edges = build.edges.filter((e) => ids.has(e.from) && ids.has(e.to))
   const draft: OverlayExport = {
     format: 'lostark-rotation-overlay',
     schemaVersion: build.schemaVersion,
@@ -27,7 +30,7 @@ export function buildToExport(build: RotationBuild): OverlayExport {
       keybind: n.keybind,
       isStart: n.isStart,
     })),
-    edges: build.edges.map((e) => ({
+    edges: edges.map((e) => ({
       id: e.id,
       from: e.from,
       to: e.to,
