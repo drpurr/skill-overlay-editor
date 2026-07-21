@@ -42,7 +42,7 @@ export default function RotationCanvas() {
   const selectEdge = useEditorStore((s) => s.selectEdge)
   const addSkillNode = useEditorStore((s) => s.addSkillNode)
 
-  const frame = useMemo(() => frameSize(build.canvas.aspect), [build.canvas.aspect])
+  const frame = useMemo(() => frameSize(build.canvas.reference), [build.canvas.reference])
   const { screenToFlowPosition } = useReactFlow()
 
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState<Node>([])
@@ -64,7 +64,7 @@ export default function RotationCanvas() {
       data: {
         w: frame.w,
         h: frame.h,
-        label: `${build.canvas.reference.w}×${build.canvas.reference.h} · ${build.canvas.aspect}`,
+        label: `${build.canvas.reference.w}×${build.canvas.reference.h}`,
         background: build.background?.dataUrl ?? null,
       },
     }

@@ -53,8 +53,8 @@ export function SettingsModal() {
             <Row label="Default class for new builds">
               <Placeholder>Berserker</Placeholder>
             </Row>
-            <Row label="Default aspect ratio">
-              <Placeholder>16:9</Placeholder>
+            <Row label="Default resolution">
+              <Placeholder>1920 × 1080</Placeholder>
             </Row>
           </Section>
 

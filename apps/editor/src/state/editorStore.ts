@@ -54,7 +54,7 @@ export interface EditorState extends EditorDoc {
   removeEdge: (id: string) => void
 
   // --- canvas ---
-  setAspect: (aspect: AspectRatio) => void
+  setResolution: (w: number, h: number) => void
   setBaseIconPct: (pct: number) => void
   setBackground: (dataUrl: string | null) => void
 }
@@ -162,8 +162,11 @@ export const useEditorStore = create<EditorState>()(
         removeEdge: (id) =>
           mutate((b) => ({ ...b, edges: b.edges.filter((e) => e.id !== id) })),
 
-        setAspect: (aspect) =>
-          mutate((b) => ({ ...b, canvas: { ...b.canvas, aspect } })),
+        setResolution: (w, h) =>
+          mutate((b) => ({
+            ...b,
+            canvas: { ...b.canvas, reference: { w, h }, aspect: nearestAspect(w, h) },
+          })),
         setBaseIconPct: (pct) =>
           mutate((b) => ({ ...b, canvas: { ...b.canvas, baseIconPct: clamp(pct, 0.01, 1) } })),
         setBackground: (dataUrl) =>
@@ -191,4 +194,16 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 function clamp01(v: number): number {
   return clamp(v, 0, 1)
+}
+
+/** Best-match coarse aspect label for a resolution (the exact ratio drives geometry). */
+function nearestAspect(w: number, h: number): AspectRatio {
+  const r = w / h
+  const options: Array<[AspectRatio, number]> = [
+    ['16:9', 16 / 9],
+    ['16:10', 16 / 10],
+    ['21:9', 21 / 9],
+    ['4:3', 4 / 3],
+  ]
+  return options.reduce((best, o) => (Math.abs(o[1] - r) < Math.abs(best[1] - r) ? o : best))[0]
 }

@@ -1,25 +1,18 @@
-// The WYSIWYG canvas renders a fixed-size "screen frame" in React Flow flow-units.
-// Node positions are stored normalized 0..1 relative to this frame, so the layout is
-// resolution-independent and maps directly onto the overlay's screen.
-import type { AspectRatio } from '@skill-overlay/schema'
+// The WYSIWYG canvas renders a fixed-width "screen frame" in React Flow flow-units; its
+// height comes from the build's target resolution, so the frame matches the monitor's exact
+// aspect ratio. Node positions are stored normalized 0..1 relative to this frame.
 
-/** Frame width in flow units (height derives from the aspect ratio). */
+/** Frame width in flow units (height derives from the resolution's aspect ratio). */
 export const FRAME_W = 1280
-
-const RATIO: Record<AspectRatio, number> = {
-  '16:9': 16 / 9,
-  '16:10': 16 / 10,
-  '21:9': 21 / 9,
-  '4:3': 4 / 3,
-}
 
 export interface Frame {
   w: number
   h: number
 }
 
-export function frameSize(aspect: AspectRatio): Frame {
-  return { w: FRAME_W, h: Math.round(FRAME_W / RATIO[aspect]) }
+export function frameSize(reference: { w: number; h: number }): Frame {
+  const ratio = reference.w > 0 && reference.h > 0 ? reference.w / reference.h : 16 / 9
+  return { w: FRAME_W, h: Math.round(FRAME_W / ratio) }
 }
 
 /** Icon side length in flow-units = baseIconPct (fraction of screen height) × frameH × scale. */

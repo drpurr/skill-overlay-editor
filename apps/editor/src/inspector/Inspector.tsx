@@ -2,9 +2,19 @@ import { useEffect, useState } from 'react'
 import { iconUrl } from '../media/skills'
 import { formatKeybind } from '@skill-overlay/schema'
 import { useEditorStore } from '../state/editorStore'
-import type { AspectRatio, RotationEdge, SkillNode } from '@skill-overlay/schema'
+import type { RotationEdge, SkillNode } from '@skill-overlay/schema'
 
-const ASPECTS: AspectRatio[] = ['16:9', '16:10', '21:9', '4:3']
+const RESOLUTIONS: { label: string; w: number; h: number }[] = [
+  { label: '1920 × 1080 — 1080p (FHD)', w: 1920, h: 1080 },
+  { label: '2560 × 1440 — 1440p (2K / QHD)', w: 2560, h: 1440 },
+  { label: '3840 × 2160 — 4K (UHD)', w: 3840, h: 2160 },
+  { label: '2560 × 1080 — Ultrawide (UW-FHD)', w: 2560, h: 1080 },
+  { label: '3440 × 1440 — Ultrawide (UW-QHD)', w: 3440, h: 1440 },
+  { label: '3840 × 1600 — Ultrawide (UW-QHD+)', w: 3840, h: 1600 },
+  { label: '5120 × 1440 — Super Ultrawide (32:9)', w: 5120, h: 1440 },
+  { label: '1920 × 1200 — 16:10', w: 1920, h: 1200 },
+  { label: '2560 × 1600 — 16:10 (QHD+)', w: 2560, h: 1600 },
+]
 
 export function Inspector() {
   const build = useEditorStore((s) => s.build)
@@ -169,7 +179,6 @@ function EdgeInspector({ edge }: { edge: RotationEdge }) {
 
 function CanvasInspector() {
   const build = useEditorStore((s) => s.build)
-  const setAspect = useEditorStore((s) => s.setAspect)
   const setBaseIconPct = useEditorStore((s) => s.setBaseIconPct)
   const setBackground = useEditorStore((s) => s.setBackground)
 
@@ -186,19 +195,7 @@ function CanvasInspector() {
         Select a skill or connection to edit it. These settings apply to the whole canvas.
       </p>
 
-      <Field label="Aspect ratio">
-        <select
-          value={build.canvas.aspect}
-          onChange={(e) => setAspect(e.target.value as AspectRatio)}
-          className="w-full rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
-        >
-          {ASPECTS.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <ResolutionControl />
 
       <Field label={`Base icon size · ${(build.canvas.baseIconPct * 100).toFixed(1)}% of screen height`}>
         <input
@@ -240,6 +237,80 @@ function CanvasInspector() {
         {starts === 1 ? '' : 's'}
       </div>
     </div>
+  )
+}
+
+function ResolutionControl() {
+  const ref = useEditorStore((s) => s.build.canvas.reference)
+  const setResolution = useEditorStore((s) => s.setResolution)
+  const [w, setW] = useState(String(ref.w))
+  const [h, setH] = useState(String(ref.h))
+  // Re-sync when the resolution changes elsewhere (preset pick, undo/redo, switching builds).
+  useEffect(() => {
+    setW(String(ref.w))
+    setH(String(ref.h))
+  }, [ref.w, ref.h])
+
+  const commit = () => {
+    const nw = Math.round(Number(w))
+    const nh = Math.round(Number(h))
+    if (Number.isFinite(nw) && nw > 0 && Number.isFinite(nh) && nh > 0) setResolution(nw, nh)
+    else {
+      setW(String(ref.w))
+      setH(String(ref.h))
+    }
+  }
+
+  const presetValue = RESOLUTIONS.some((r) => r.w === ref.w && r.h === ref.h)
+    ? `${ref.w}x${ref.h}`
+    : 'custom'
+
+  return (
+    <Field label="Monitor resolution">
+      <div className="flex flex-col gap-2">
+        <select
+          value={presetValue}
+          onChange={(e) => {
+            if (e.target.value === 'custom') return
+            const [pw, ph] = e.target.value.split('x').map(Number)
+            setResolution(pw, ph)
+          }}
+          className="w-full rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
+        >
+          {RESOLUTIONS.map((r) => (
+            <option key={`${r.w}x${r.h}`} value={`${r.w}x${r.h}`}>
+              {r.label}
+            </option>
+          ))}
+          <option value="custom">Custom…</option>
+        </select>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={w}
+            onChange={(e) => setW(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            className="w-24 rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
+            aria-label="Width"
+          />
+          <span className="text-white/40">×</span>
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={h}
+            onChange={(e) => setH(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            className="w-24 rounded bg-[var(--color-panel-2)] px-2 py-1 text-sm outline-none ring-1 ring-black/40"
+            aria-label="Height"
+          />
+        </div>
+      </div>
+    </Field>
   )
 }
 

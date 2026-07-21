@@ -7,11 +7,6 @@ import { iconUrl } from './media'
 const SVGNS = 'http://www.w3.org/2000/svg'
 const TARGET_GAP = 10
 
-function aspectRatio(a: string): number {
-  const [w, h] = a.split(':').map(Number)
-  return w && h ? w / h : 16 / 9
-}
-
 interface Box {
   x: number
   y: number
@@ -57,8 +52,9 @@ export function renderOverlay(root: HTMLElement, state: RotationState): void {
 
   const w = root.clientWidth
   const h = root.clientHeight
-  const ar = aspectRatio(exp.canvas.aspect)
-  // Letterbox: fit a rect of the authored aspect inside the window.
+  const ref = exp.canvas.reference
+  const ar = ref.w > 0 && ref.h > 0 ? ref.w / ref.h : 16 / 9
+  // Letterbox: fit a rect of the authored resolution's aspect inside the window.
   let fw = w
   let fh = w / ar
   if (fh > h) {
