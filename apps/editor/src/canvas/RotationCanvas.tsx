@@ -86,27 +86,34 @@ export default function RotationCanvas() {
     })
   }, [build.nodes, build.canvas, build.background, frame, selectedNodeId, setRfNodes])
 
-  // Re-seed RF edges from the edges slice.
+  // Re-seed RF edges from the edges slice. Each arrow scales with the average icon scale
+  // of the two skills it connects.
   useEffect(() => {
+    const scaleOf = new Map(build.nodes.map((n) => [n.id, n.scale]))
+    const edgeScale = (from: string, to: string) =>
+      ((scaleOf.get(from) ?? 1) + (scaleOf.get(to) ?? 1)) / 2
     setRfEdges(
-      build.edges.map((e) => ({
-        id: e.id,
-        source: e.from,
-        target: e.to,
-        sourceHandle: 's',
-        targetHandle: 't',
-        type: 'rotation',
-        selected: e.id === selectedEdgeId,
-        data: { condition: e.condition, priority: e.priority },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 26,
-          height: 26,
-          color: '#FFFFFF',
-        },
-      })),
+      build.edges.map((e) => {
+        const s = edgeScale(e.from, e.to)
+        return {
+          id: e.id,
+          source: e.from,
+          target: e.to,
+          sourceHandle: 's',
+          targetHandle: 't',
+          type: 'rotation',
+          selected: e.id === selectedEdgeId,
+          data: { condition: e.condition, priority: e.priority, scale: s },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 26 * s,
+            height: 26 * s,
+            color: '#FFFFFF',
+          },
+        }
+      }),
     )
-  }, [build.edges, selectedEdgeId, setRfEdges])
+  }, [build.edges, build.nodes, selectedEdgeId, setRfEdges])
 
   const onConnect = useCallback(
     (c: Connection) => {

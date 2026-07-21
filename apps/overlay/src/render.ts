@@ -91,13 +91,14 @@ export function renderOverlay(root: HTMLElement, state: RotationState): void {
     const sp = borderPoint(ba, bb, 0)
     const tp = borderPoint(bb, ba, TARGET_GAP)
     const active = cur !== null && e.from === cur
+    const edgeScale = (a.scale + b.scale) / 2
     const line = document.createElementNS(SVGNS, 'line')
     line.setAttribute('x1', String(sp.x))
     line.setAttribute('y1', String(sp.y))
     line.setAttribute('x2', String(tp.x))
     line.setAttribute('y2', String(tp.y))
     line.setAttribute('stroke', active ? '#34d399' : '#FFFFFF')
-    line.setAttribute('stroke-width', active ? '4' : '2')
+    line.setAttribute('stroke-width', String((active ? 4 : 2) * edgeScale))
     line.setAttribute('opacity', cur !== null && !active ? '0.2' : '1')
     line.setAttribute('marker-end', active ? 'url(#arrow-next)' : 'url(#arrow)')
     svg.appendChild(line)

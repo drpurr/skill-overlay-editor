@@ -63,7 +63,8 @@ export function RotationEdge({ id, source, target, markerEnd, selected, data }: 
   const mx = (sp.x + tp.x) / 2
   const my = (sp.y + tp.y) / 2
 
-  const edge = data as Partial<RotationEdgeData> | undefined
+  const edge = data as (Partial<RotationEdgeData> & { scale?: number }) | undefined
+  const scale = edge?.scale ?? 1
   const hasLabel = !!edge?.condition || edge?.priority != null
 
   return (
@@ -75,7 +76,7 @@ export function RotationEdge({ id, source, target, markerEnd, selected, data }: 
         interactionWidth={26}
         style={{
           stroke: '#FFFFFF',
-          strokeWidth: selected ? 4 : 3,
+          strokeWidth: (selected ? 4 : 3) * scale,
         }}
       />
 
