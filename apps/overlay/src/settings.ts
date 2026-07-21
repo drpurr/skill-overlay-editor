@@ -5,7 +5,6 @@ import { listen } from '@tauri-apps/api/event'
 
 interface Hotkeys {
   toggle: string
-  reset: string
 }
 interface Config {
   hotkeys: Hotkeys
@@ -28,7 +27,6 @@ function render(): void {
   ;($('opacity') as HTMLInputElement).value = String(config.opacity)
   $('opacity-val').textContent = `${Math.round(config.opacity * 100)}%`
   $('hk-toggle').textContent = pretty(config.hotkeys.toggle)
-  $('hk-reset').textContent = pretty(config.hotkeys.reset)
   const path = config.last_rotation_path
   $('rot').textContent = path ? `Loaded: ${path.split(/[\\/]/).pop()}` : 'No rotation loaded.'
 }
@@ -75,7 +73,6 @@ function capture(btnId: string, which: keyof Hotkeys): void {
 }
 
 $('hk-toggle').addEventListener('click', () => capture('hk-toggle', 'toggle'))
-$('hk-reset').addEventListener('click', () => capture('hk-reset', 'reset'))
 $('load').addEventListener('click', () => void invoke('pick_rotation'))
 
 // Keep in sync when the backend updates config (e.g. after loading a rotation).

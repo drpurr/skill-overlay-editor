@@ -1,5 +1,4 @@
 mod config;
-mod input;
 
 use std::str::FromStr;
 use std::sync::Mutex;
@@ -53,7 +52,6 @@ pub fn run() {
                 config: Mutex::new(cfg.clone()),
             });
             apply_hotkeys(&handle, &cfg);
-            input::spawn_listener(handle.clone()); // passive global key listener -> "keydown"
             setup_tray(&handle)?;
             Ok(())
         })
@@ -107,13 +105,6 @@ fn apply_hotkeys(app: &AppHandle, cfg: &Config) {
             }
         });
     }
-    if let Ok(sc) = Shortcut::from_str(&cfg.hotkeys.reset) {
-        let _ = gs.on_shortcut(sc, |app, _sc, event| {
-            if event.state == ShortcutState::Pressed {
-                let _ = app.emit("reset-rotation", ());
-            }
-        });
-    }
 }
 
 // --- tray + windows -------------------------------------------------------------------
@@ -121,10 +112,9 @@ fn apply_hotkeys(app: &AppHandle, cfg: &Config) {
 fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
     let load = MenuItem::with_id(app, "load", "Load rotation…", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
-    let reset = MenuItem::with_id(app, "reset", "Reset rotation", true, None::<&str>)?;
     let toggle = MenuItem::with_id(app, "toggle", "Toggle overlay", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&load, &settings, &reset, &toggle, &quit])?;
+    let menu = Menu::with_items(app, &[&load, &settings, &toggle, &quit])?;
 
     let _tray = TrayIconBuilder::new()
         .icon(app.default_window_icon().unwrap().clone())
@@ -133,9 +123,6 @@ fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
         .on_menu_event(|app, event| match event.id.as_ref() {
             "load" => load_rotation(app),
             "settings" => show_settings(app),
-            "reset" => {
-                let _ = app.emit("reset-rotation", ());
-            }
             "toggle" => toggle_overlay(app),
             "quit" => app.exit(0),
             _ => {}

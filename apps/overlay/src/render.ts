@@ -1,11 +1,12 @@
-// DOM/SVG renderer — a port of the editor's tools/overlay-preview.html, driven by the
-// rotation state instead of clicks. Highlights the current skill + its possible-next set.
+// DOM/SVG renderer — draws the rotation as a static cheat-sheet: every skill at full
+// brightness with its keybind badge, white arrows between them, condition labels shown.
 import type { ExportNode, OverlayExport } from '@skill-overlay/schema'
-import { possibleNext, type RotationState } from './rotation'
 import { iconUrl } from './media'
 
 const SVGNS = 'http://www.w3.org/2000/svg'
 const TARGET_GAP = 10
+/** Base arrow line width (before per-edge icon scaling). */
+const LINE_W = 4
 
 interface Box {
   x: number
@@ -39,15 +40,11 @@ function arrowDefs(): string {
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L8,3 L0,6 Z" fill="#FFFFFF" />
     </marker>
-    <marker id="arrow-next" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L8,3 L0,6 Z" fill="#34d399" />
-    </marker>
   </defs>`
 }
 
-/** Rebuild the overlay for the given state. Cheap for the ~10-20 icons of a rotation. */
-export function renderOverlay(root: HTMLElement, state: RotationState): void {
-  const exp: OverlayExport = state.export
+/** Rebuild the overlay for the loaded export. Cheap for the ~10-20 icons of a rotation. */
+export function renderOverlay(root: HTMLElement, exp: OverlayExport): void {
   root.innerHTML = ''
 
   const w = root.clientWidth
@@ -78,10 +75,7 @@ export function renderOverlay(root: HTMLElement, state: RotationState): void {
   }
   const byId = (id: string) => exp.nodes.find((n) => n.id === id)
 
-  const cur = state.currentId
-  const nextIds = new Set(possibleNext(state).map((n) => n.id))
-
-  // edges
+  // edges (line + arrowhead scale with the connected icons' average scale)
   for (const e of exp.edges) {
     const a = byId(e.from)
     const b = byId(e.to)
@@ -90,28 +84,33 @@ export function renderOverlay(root: HTMLElement, state: RotationState): void {
     const bb = boxOf(b)
     const sp = borderPoint(ba, bb, 0)
     const tp = borderPoint(bb, ba, TARGET_GAP)
-    const active = cur !== null && e.from === cur
     const edgeScale = (a.scale + b.scale) / 2
     const line = document.createElementNS(SVGNS, 'line')
     line.setAttribute('x1', String(sp.x))
     line.setAttribute('y1', String(sp.y))
     line.setAttribute('x2', String(tp.x))
     line.setAttribute('y2', String(tp.y))
-    line.setAttribute('stroke', active ? '#34d399' : '#FFFFFF')
-    line.setAttribute('stroke-width', String((active ? 4 : 2) * edgeScale))
-    line.setAttribute('opacity', cur !== null && !active ? '0.2' : '1')
-    line.setAttribute('marker-end', active ? 'url(#arrow-next)' : 'url(#arrow)')
+    line.setAttribute('stroke', '#FFFFFF')
+    line.setAttribute('stroke-width', String(LINE_W * edgeScale))
+    line.setAttribute('marker-end', 'url(#arrow)')
     svg.appendChild(line)
+
+    // condition label near the target icon
+    if (e.condition) {
+      const label = document.createElement('div')
+      label.className = 'cond'
+      label.textContent = e.condition
+      label.style.left = `${bb.x + bb.w / 2}px`
+      label.style.top = `${bb.y - 6}px`
+      root.appendChild(label)
+    }
   }
 
-  // nodes
+  // nodes — all full brightness, keybind badges kept
   for (const n of exp.nodes) {
     const box = boxOf(n)
     const el = document.createElement('div')
     el.className = 'node'
-    if (n.id === cur) el.classList.add('current')
-    else if (nextIds.has(n.id)) el.classList.add('next')
-    else el.classList.add('dim')
     el.style.left = `${box.x}px`
     el.style.top = `${box.y}px`
     el.style.width = `${box.w}px`
@@ -124,21 +123,5 @@ export function renderOverlay(root: HTMLElement, state: RotationState): void {
       el.appendChild(k)
     }
     root.appendChild(el)
-  }
-
-  // condition labels on edges leaving the current node
-  if (cur !== null) {
-    for (const e of exp.edges) {
-      if (e.from !== cur || !e.condition) continue
-      const b = byId(e.to)
-      if (!b) continue
-      const box = boxOf(b)
-      const label = document.createElement('div')
-      label.className = 'cond'
-      label.textContent = e.condition
-      label.style.left = `${box.x + box.w / 2}px`
-      label.style.top = `${box.y - 6}px`
-      root.appendChild(label)
-    }
   }
 }

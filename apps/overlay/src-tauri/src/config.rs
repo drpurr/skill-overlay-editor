@@ -3,19 +3,17 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
-/// Global-shortcut accelerators (Code-based, e.g. "Ctrl+Alt+KeyR") — both user-configurable.
+/// Global-shortcut accelerators (Code-based, e.g. "Ctrl+Alt+KeyO") — user-configurable.
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
 pub struct Hotkeys {
     pub toggle: String,
-    pub reset: String,
 }
 
 impl Default for Hotkeys {
     fn default() -> Self {
         Self {
             toggle: "Ctrl+Alt+KeyO".into(),
-            reset: "Ctrl+Alt+KeyR".into(),
         }
     }
 }

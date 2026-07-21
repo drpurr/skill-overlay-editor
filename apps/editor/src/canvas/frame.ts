@@ -5,6 +5,9 @@
 /** Frame width in flow units (height derives from the resolution's aspect ratio). */
 export const FRAME_W = 1280
 
+/** Alignment-grid unit (flow units): the visible grid spacing and the opt-in snap step. */
+export const GRID = 16
+
 export interface Frame {
   w: number
   h: number

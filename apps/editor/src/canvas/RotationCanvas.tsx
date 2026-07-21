@@ -19,11 +19,9 @@ import { SKILL_DND_MIME, type SkillDragPayload } from '../library/dnd'
 import { SkillNode } from './SkillNode'
 import { FrameNode } from './FrameNode'
 import { RotationEdge } from './RotationEdge'
-import { frameSize, iconSizePx } from './frame'
+import { frameSize, GRID, iconSizePx } from './frame'
 
 const FRAME_ID = '__frame__'
-/** Shared grid unit: snap step and the visible square-grid spacing align to this. */
-export const GRID = 24
 
 const nodeTypes = { skill: SkillNode, frame: FrameNode }
 const edgeTypes = { rotation: RotationEdge }
@@ -66,6 +64,7 @@ export default function RotationCanvas() {
         h: frame.h,
         label: `${build.canvas.reference.w}×${build.canvas.reference.h}`,
         background: build.background?.dataUrl ?? null,
+        showGrid,
       },
     }
     const skillNodes: Node[] = build.nodes.map((n) => ({
@@ -84,7 +83,7 @@ export default function RotationCanvas() {
       }
       return [carry(frameNode), ...skillNodes.map(carry)]
     })
-  }, [build.nodes, build.canvas, build.background, frame, selectedNodeId, setRfNodes])
+  }, [build.nodes, build.canvas, build.background, frame, selectedNodeId, showGrid, setRfNodes])
 
   // Re-seed RF edges from the edges slice. Each arrow scales with the average icon scale
   // of the two skills it connects.
@@ -204,11 +203,8 @@ export default function RotationCanvas() {
         selectionKeyCode={null}
         multiSelectionKeyCode={null}
       >
-        {showGrid ? (
-          <Background variant={BackgroundVariant.Lines} gap={GRID} size={1} color="#222a37" />
-        ) : (
-          <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#1e2530" />
-        )}
+        {/* Pane dots only; the alignment grid draws inside the frame, over the screenshot. */}
+        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#1e2530" />
         <Controls showInteractive={false} />
       </ReactFlow>
     </div>

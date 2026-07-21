@@ -43,16 +43,6 @@ body {
   font: 600 11px/1.45 system-ui, sans-serif;
   color: #fff;
 }
-.node.current {
-  box-shadow: 0 0 0 3px #e0a526, 0 0 16px 2px rgba(224, 165, 38, 0.65);
-}
-.node.next {
-  box-shadow: 0 0 0 3px #34d399, 0 0 12px 1px rgba(52, 211, 153, 0.5);
-}
-.node.dim {
-  opacity: 0.32;
-}
-
 .cond {
   position: absolute;
   transform: translate(-50%, -100%);

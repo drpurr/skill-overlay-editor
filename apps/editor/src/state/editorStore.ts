@@ -94,7 +94,7 @@ export const useEditorStore = create<EditorState>()(
         build: createEmptyBuild('Untitled Build', 'berserker'),
         selectedNodeId: null,
         selectedEdgeId: null,
-        snapToGrid: true,
+        snapToGrid: false, // freeform placement by default; snapping is opt-in
         showGrid: false,
         settingsOpen: false,
 

@@ -1,17 +1,16 @@
-// Overlay window entry: render a loaded rotation and advance it from key events that the
-// Rust rdev listener forwards. The window itself is transparent + click-through.
+// Overlay window entry: render the loaded rotation as a static cheat-sheet. The window is
+// transparent + click-through; keybind badges are shown but no input is monitored.
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
-import { overlayExportSchema } from '@skill-overlay/schema'
-import { advance, createState, reset, type RotationState } from './rotation'
+import { overlayExportSchema, type OverlayExport } from '@skill-overlay/schema'
 import { renderOverlay } from './render'
 
 const root = document.getElementById('app') as HTMLElement
 const hint = document.getElementById('hint')
-let state: RotationState | null = null
+let current: OverlayExport | null = null
 
 function render(): void {
-  if (state) renderOverlay(root, state)
+  if (current) renderOverlay(root, current)
 }
 
 function loadExport(value: unknown): void {
@@ -20,23 +19,10 @@ function loadExport(value: unknown): void {
     console.error('Ignoring invalid rotation export:', parsed.error.message)
     return
   }
-  state = createState(parsed.data)
+  current = parsed.data
   if (hint) hint.style.display = 'none'
   render()
 }
-
-// Canonical keybind strings ("Q", "Shift+Z") emitted by the Rust rdev listener.
-void listen<string>('keydown', (e) => {
-  if (!state) return
-  state = advance(state, e.payload)
-  render()
-})
-
-void listen('reset-rotation', () => {
-  if (!state) return
-  state = reset(state)
-  render()
-})
 
 void listen<unknown>('load-rotation', (e) => loadExport(e.payload))
 
