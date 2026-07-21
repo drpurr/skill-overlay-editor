@@ -32,6 +32,7 @@ cd skill-overlay-editor
 
 npm install              # installs all workspaces
 npm run dev:editor       # the editor (http://localhost:5173)
+npm run dev:overlay      # the Tauri overlay app (needs Rust)
 npm test                 # all workspace tests
 ```
 
