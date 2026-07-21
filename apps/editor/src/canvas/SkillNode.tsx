@@ -16,6 +16,11 @@ export function SkillNode({ data, selected }: NodeProps) {
   const removeNode = useEditorStore((s) => s.removeNode)
   const selectNode = useEditorStore((s) => s.selectNode)
 
+  // Delete button scales with the icon (always ~1/3 of its side, so always smaller) and
+  // floats just off the icon's top-right corner rather than covering it.
+  const trashSize = Math.max(14, sizePx * 0.34)
+  const trashGap = Math.max(3, sizePx * 0.08)
+
   return (
     <div className="relative" style={{ width: sizePx, height: sizePx }}>
       <img
@@ -47,9 +52,15 @@ export function SkillNode({ data, selected }: NodeProps) {
           removeNode(node.id)
           selectNode(null)
         }}
-        className="nodrag absolute -right-3 -top-3 z-10 grid h-5 w-5 place-items-center rounded-full bg-red-700 text-white ring-2 ring-[#0b0d12] hover:bg-red-600"
+        className="nodrag absolute z-10 grid place-items-center rounded-full bg-red-700 text-white ring-2 ring-[#0b0d12] hover:bg-red-600"
+        style={{
+          width: trashSize,
+          height: trashSize,
+          top: -trashGap,
+          right: -(trashSize + trashGap),
+        }}
       >
-        <TrashIcon size={11} />
+        <TrashIcon size={Math.round(trashSize * 0.55)} />
       </button>
 
       {/* Connection dots (chaiNNer-style): drag the right dot onto another skill's left
