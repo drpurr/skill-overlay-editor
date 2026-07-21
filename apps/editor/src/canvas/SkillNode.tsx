@@ -11,7 +11,7 @@ export interface SkillNodeRFData {
   [key: string]: unknown
 }
 
-export function SkillNode({ data, selected }: NodeProps) {
+export function SkillNode({ data }: NodeProps) {
   const { node, sizePx } = data as unknown as SkillNodeRFData
   const removeNode = useEditorStore((s) => s.removeNode)
   const selectNode = useEditorStore((s) => s.selectNode)
@@ -27,13 +27,20 @@ export function SkillNode({ data, selected }: NodeProps) {
         src={iconUrl(node.class, node.icon)}
         alt={node.title}
         draggable={false}
-        className={`h-full w-full rounded-md object-cover ${
-          selected ? 'ring-2 ring-[var(--color-accent-2)]' : ''
-        }`}
+        className="h-full w-full rounded-md object-cover"
       />
 
       {node.keybind && (
-        <span className="pointer-events-none absolute -bottom-1.5 -right-1.5 rounded bg-black/85 px-1 text-[10px] font-semibold leading-tight text-white ring-1 ring-white/20">
+        <span
+          className="pointer-events-none absolute rounded bg-black/85 font-semibold leading-tight text-white ring-1 ring-white/20"
+          style={{
+            // Scales with the icon: ~22% of its side, so always proportionally smaller.
+            fontSize: Math.max(7, sizePx * 0.22),
+            padding: `0 ${Math.max(1, sizePx * 0.05)}px`,
+            right: -sizePx * 0.06,
+            bottom: -sizePx * 0.06,
+          }}
+        >
           {node.keybind}
         </span>
       )}

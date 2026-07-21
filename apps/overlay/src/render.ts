@@ -144,6 +144,8 @@ export function renderOverlay(root: HTMLElement, exp: OverlayExport): void {
       const k = document.createElement('span')
       k.className = 'key'
       k.textContent = n.keybind
+      // Scales with the icon (offsets/padding are em-based in CSS).
+      k.style.fontSize = `${Math.max(7, box.w * 0.22)}px`
       el.appendChild(k)
     }
     root.appendChild(el)
